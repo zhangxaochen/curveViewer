@@ -8,9 +8,10 @@ Created on Apr 8, 2013
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 from curveViewer_ui import *
-import sys
+import glob
 import os
 import random
+import sys
 import xml.etree.ElementTree as ET
 #from xml.etree.ElementTree import ElementTree
 
@@ -119,6 +120,14 @@ class MyWindow(QMainWindow):
 #		self.ui.listWidgetNode.itemSelectionChanged.connect(lambda : print('isc========'))
 #		self.ui.listWidgetNode.currentItemChanged.connect(lambda x: print('cic, x+++', x))
 		self.ui.listWidgetNode.itemClicked.connect(self.onNodeItemClicked)
+		self.ui.listWidgetFile.currentItemChanged.connect(self.onFileItemClicked)
+		
+	def onFileItemClicked(self, item):
+		print('onFileItemClicked')
+		baseName=item.text()
+		absPath=self.dirName+os.sep+baseName
+		self.parseXmlFile(absPath)
+		
 		
 		
 	def onNodeItemClicked(self, item):
@@ -156,13 +165,22 @@ class MyWindow(QMainWindow):
 	@QtCore.pyqtSlot()
 	def on_actionOpen_triggered(self):
 		print("on_actionOpen_triggered")
-		fname=QFileDialog.getOpenFileName(
-											parent=self, caption='打开 XML 文件', directory=os.path.abspath(''), 
-#											filter='XML文件 (*.xml)', options=QFileDialog.Option(0))
-											filter='XML文件 (*.xml)')
+#		fname=QFileDialog.getOpenFileName(
+#											parent=self, caption='打开 XML 文件', directory=os.path.abspath(''), 
+#											filter='XML文件 (*.xml)')
+#		self.parseXmlFile(fname)
+		self.dirName=QFileDialog.getExistingDirectory(parent=self, caption='', directory=os.path.abspath(''), options=QFileDialog.ShowDirsOnly)
+#		print('dirName', self.dirName)
 		
-		self.parseXmlFile(fname)
+		self.ui.labelDirOpened.setText(self.dirName)
+		xmlFileList=glob.glob(self.dirName+os.sep+'*.xml')
+#		print(xmlFileList)
+		xmlFileList=[os.path.basename(i) for i in xmlFileList]
+		print(xmlFileList)
 		
+		self.ui.listWidgetFile.clear()
+		for fname in xmlFileList:
+			self.ui.listWidgetFile.addItem(fname)
 	
 	@QtCore.pyqtSlot()
 	def on_actionExit_triggered(self):
