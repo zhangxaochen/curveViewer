@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'curveViewer.ui'
 #
-# Created: Wed Apr 10 17:50:25 2013
+# Created: Thu Apr 11 20:51:43 2013
 #      by: PyQt4 UI code generator 4.10
 #
 # WARNING! All changes made in this file will be lost!
@@ -67,10 +67,10 @@ class Ui_MainWindow(object):
         self.scrollArea.setMinimumSize(QtCore.QSize(0, 0))
         self.scrollArea.setWidgetResizable(True)
         self.scrollArea.setObjectName(_fromUtf8("scrollArea"))
-        self.scrollAreaWidgetContents = QtGui.QWidget()
-        self.scrollAreaWidgetContents.setGeometry(QtCore.QRect(0, 0, 360, 366))
-        self.scrollAreaWidgetContents.setObjectName(_fromUtf8("scrollAreaWidgetContents"))
-        self.scrollArea.setWidget(self.scrollAreaWidgetContents)
+        self.mplWidget = MatplotlibWidget()
+        self.mplWidget.setGeometry(QtCore.QRect(0, 0, 360, 366))
+        self.mplWidget.setObjectName(_fromUtf8("mplWidget"))
+        self.scrollArea.setWidget(self.mplWidget)
         self.horizontalLayout.addWidget(self.splitterH)
         MainWindow.setCentralWidget(self.centralwidget)
         self.menubar = QtGui.QMenuBar(MainWindow)
@@ -104,3 +104,4 @@ class Ui_MainWindow(object):
         self.actionExit.setToolTip(_translate("MainWindow", "E(x)it", None))
         self.actionExit.setShortcut(_translate("MainWindow", "Ctrl+Q", None))
 
+from matplotlibwidget import MatplotlibWidget

@@ -39,6 +39,8 @@ class Keys:
 	kRy='Ry'
 	kRz='Rz'
 	
+#	xmlKeyList=[kTs, kAx, kAy, kAz, kGx, kGy, kGz, kMx, kMy, kMz, kRw, kRx, kRy, kRz]
+	
 
 class MyWidgetCurveView(QWidget):
 	dataDictList=[]
@@ -71,18 +73,12 @@ class MyWidgetCurveView(QWidget):
 		else:
 #			print('dLen:=', dLen)
 			axList=self.getAttribListFromKey(Keys.kAx)
-			tsList=self.getAttribListFromKey(Keys.kTs)
-			tsStart=tsList[0]
-			for i in range(len(tsList)):
-				tsList[i]-=tsStart
-				
-				
-			
-				
-				
+#			tsList=self.getAttribListFromKey(Keys.kTs)
+#			tsStart=tsList[0]
+#			for i in range(len(tsList)):
+#				tsList[i]-=tsStart
 			
 			
-			pass
 		
 	def getAttribListFromKey(self, key):
 		l=self.dataDictList
@@ -99,36 +95,29 @@ class MyWidgetCurveView(QWidget):
 		
 class MyWindow(QMainWindow):
 	class XmlStuff(object):pass
+	xmlDataList=[]
 	
 	def __init__(self, parent=None):
 		super().__init__(parent)
 		self.ui=Ui_MainWindow()
 		self.ui.setupUi(self)
 		
-#		print(self.ui.widgetCurve)
-		self.ui.widgetCurve=MyWidgetCurveView()
-		self.ui.scrollArea.setWidget(self.ui.widgetCurve)
+		ranNums=random.sample(range(100), 100)
+		self.ui.mplWidget.canvas.ax.clear()
+#		self.ui.mplWidget.canvas.ax.plot(ranNums)
+#		self.ui.mplWidget.canvas.draw()
 		
 		self.xml=self.XmlStuff()
 
-		#-------------------------------------------------------xml test
+		#==================================xml test
 		fname='E:/workspace/PyCeshi/curveViewer/ttt.xml'
-		tree=ET.ElementTree(file=fname)
-#		print(dir(tree))
-
-		self.xml.elemRoot=tree.getroot()	#captureSession
-		for child in self.xml.elemRoot:
-			print('child:tab&attrib:', child.tag, child.attrib,)
-#		print(dir(elemRoot))
-#		print(type(elemRoot), elemRoot.tag, elemRoot.attrib)
-		self.xml.elemNodes=self.xml.elemRoot.find(Keys.kNodes)
-		self.xml.elemsNodeList=self.xml.elemNodes.findall(Keys.kNode)	#list
-		for i in range(len(self.xml.elemsNodeList)):
-			self.ui.listWidgetNode.addItem('node %d'%(i+1))
-		
-		#=================信号槽
+		self.parseXmlFile(fname)
+				
+		#===================================信号槽
 #		self.ui.listWidgetNode.itemChanged.connect(lambda x:print('the args: ', x))
 #		self.ui.listWidgetNode.itemActivated.connect(lambda x:print('itemActivated, the args: ', x))	#要双击
+#		self.ui.listWidgetNode.itemSelectionChanged.connect(lambda : print('isc========'))
+#		self.ui.listWidgetNode.currentItemChanged.connect(lambda x: print('cic, x+++', x))
 		self.ui.listWidgetNode.itemClicked.connect(self.onNodeItemClicked)
 		
 		
@@ -137,23 +126,31 @@ class MyWindow(QMainWindow):
 		t=item.text()
 		idx=int(t[len(t)-1])-1
 		print('idx', idx)
-#		self.xml.elemNodes[idx]
-		aNode=self.xml.elemsNodeList[idx]
-		dataList=aNode.findall(Keys.kData)
+		eNode=self.xml.eNodeList[idx]
+		eDataList=eNode.findall(Keys.kData)
+		#========================xmlDataList is [ {[]...[]}, ..., {[]...[]} ]
+		#扩充 xmlDataList，如果必要
+		llen=len(self.xmlDataList)
+		if llen<idx+1:
+			for i in range(idx+1-llen):
+				self.xmlDataList.append({})	#append empty dict
+		dic=self.xmlDataList[idx]
+		if not dic:	#dic is empty
+#			for i in range(len(eDataList[0].attrib)):
+				
+			for eData in eDataList:
+				for k, v in eData.attrib.items():
+					if not dic.get(k):
+						dic[k]=[]
+					dic[k].append(v)
+#		print(dic)
+		axList=dic[Keys.kAx]
+		print(axList)
 		
-		wc=self.ui.widgetCurve
-		dataDictList=wc.dataDictList
-		dataDictList.clear()
-		for data in dataList:
-			#print(data)
-#			print(data.attrib)	#dict
-			dataDictList.append(data.attrib)
-			
-		wc.repaint()
-#		wc.resize(wc.width()*2, wc.height())
-#		print('wc.width()', wc.width())
-		
-		
+		self.ui.mplWidget.canvas.ax.clear()
+		self.ui.mplWidget.canvas.ax.plot(axList)
+		self.ui.mplWidget.canvas.draw()
+					
 
 	
 	@QtCore.pyqtSlot()
@@ -163,26 +160,31 @@ class MyWindow(QMainWindow):
 											parent=self, caption='打开 XML 文件', directory=os.path.abspath(''), 
 #											filter='XML文件 (*.xml)', options=QFileDialog.Option(0))
 											filter='XML文件 (*.xml)')
-		if(fname==''):
-			return
-		print("fname:",fname)
-		tree=ET.ElementTree(file=fname)
-#		print(dir(tree))
-
-		elemRoot=tree.getroot()	#captureSession
-#		print(dir(elemRoot))
-		print(elemRoot.find(self.kXmlNodes))
 		
+		self.parseXmlFile(fname)
 		
-		print(type(elemRoot), elemRoot.tag, elemRoot.attrib)
-		for child in elemRoot:
-			print(child.tag, child.attrib,)
-
-
 	
 	@QtCore.pyqtSlot()
 	def on_actionExit_triggered(self):
 		print("on_actionExit_triggered")
+		
+	#解析xml， 左上角窗口填 item	
+	def parseXmlFile(self, fname):
+		if(fname==''):
+			return
+		tree=ET.ElementTree(file=fname)
+#		print(dir(tree))
+
+		self.xml.elemRoot=tree.getroot()	#captureSession
+#		for child in self.xml.elemRoot:
+#			print('child:tab&attrib:', child.tag, child.attrib,)
+		self.xml.elemNodes=self.xml.elemRoot.find(Keys.kNodes)
+		self.xml.eNodeList=self.xml.elemNodes.findall(Keys.kNode)	#list
+		self.ui.listWidgetNode.clear()
+		for i in range(len(self.xml.eNodeList)):
+			self.ui.listWidgetNode.addItem('node %d'%(i+1))
+		
+		self.xmlDataList.clear()
 		
 
 def main():
