@@ -120,10 +120,10 @@ class MyWindow(QMainWindow):
 #		self.ui.listWidgetNode.itemSelectionChanged.connect(lambda : print('isc========'))
 #		self.ui.listWidgetNode.currentItemChanged.connect(lambda x: print('cic, x+++', x))
 		self.ui.listWidgetNode.itemClicked.connect(self.onNodeItemClicked)
-		self.ui.listWidgetFile.currentItemChanged.connect(self.onFileItemClicked)
+		self.ui.listWidgetFile.currentItemChanged.connect(self.onFileItemChanged)
 		
-	def onFileItemClicked(self, item):
-		print('onFileItemClicked')
+	def onFileItemChanged(self, item):
+		print('onFileItemChanged')
 		baseName=item.text()
 		absPath=self.dirName+os.sep+baseName
 		self.parseXmlFile(absPath)
@@ -169,13 +169,17 @@ class MyWindow(QMainWindow):
 #											parent=self, caption='打开 XML 文件', directory=os.path.abspath(''), 
 #											filter='XML文件 (*.xml)')
 #		self.parseXmlFile(fname)
-		self.dirName=QFileDialog.getExistingDirectory(parent=self, caption='', directory=os.path.abspath(''), options=QFileDialog.ShowDirsOnly)
-#		print('dirName', self.dirName)
-		
+		self.dirName=QFileDialog.getExistingDirectory(
+													parent=self, caption='', directory=os.path.abspath(''), 
+													options=QFileDialog.ShowDirsOnly)
+#		print('self.dirName', self.dirName)
+		if(self.dirName is ''):
+			return
 		self.ui.labelDirOpened.setText(self.dirName)
-		xmlFileList=glob.glob(self.dirName+os.sep+'*.xml')
-#		print(xmlFileList)
-		xmlFileList=[os.path.basename(i) for i in xmlFileList]
+		os.chdir(self.dirName)	#这样可使下次open的时候记住目录
+		xmlFileList=glob.glob('*.xml')
+#		xmlFileList=glob.glob(self.dirName+os.sep+'*.xml')
+#		xmlFileList=[os.path.basename(i) for i in xmlFileList]
 		print(xmlFileList)
 		
 		self.ui.listWidgetFile.clear()
