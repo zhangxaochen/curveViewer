@@ -103,10 +103,13 @@ class MyWindow(QMainWindow):
 		self.ui=Ui_MainWindow()
 		self.ui.setupUi(self)
 		
-		ranNums=random.sample(range(100), 100)
-		self.ui.mplWidget.canvas.ax.clear()
-#		self.ui.mplWidget.canvas.ax.plot(ranNums)
-#		self.ui.mplWidget.canvas.draw()
+		self._canvas=self.ui.mplWidget.canvas
+		self._canvas.ax.clear()
+		self.setAxisLabels()
+#		ranNums=random.sample(range(100), 100)
+#		self._canvas.ax.plot(ranNums)
+
+		self._canvas.draw()
 		
 		self.xml=self.XmlStuff()
 
@@ -117,21 +120,45 @@ class MyWindow(QMainWindow):
 		#===================================信号槽
 #		self.ui.listWidgetNode.itemChanged.connect(lambda x:print('the args: ', x))
 #		self.ui.listWidgetNode.itemActivated.connect(lambda x:print('itemActivated, the args: ', x))	#要双击
-#		self.ui.listWidgetNode.itemSelectionChanged.connect(lambda : print('isc========'))
-#		self.ui.listWidgetNode.currentItemChanged.connect(lambda x: print('cic, x+++', x))
-		self.ui.listWidgetNode.itemClicked.connect(self.onNodeItemClicked)
-		self.ui.listWidgetFile.currentItemChanged.connect(self.onFileItemChanged)
+#		self.ui.listWidgetNode.itemSelectionChanged.connect(self.onNodeItemSelectionChanged)
+		self.ui.listWidgetNode.currentItemChanged.connect(self.onCurrentNodeItemChanged)
 		
-	def onFileItemChanged(self, item):
-		print('onFileItemChanged')
+		self.ui.listWidgetFile.currentItemChanged.connect(self.onCurrentFileItemChanged)
+	
+	def setAxisLabels(self):
+		print('setAxisLabels')
+		self._canvas.ax.grid()
+		
+		self._canvas.ax.set_xlabel('Sequential Data')
+		self._canvas.ax.set_ylabel('Acceleration(m/s^2)')
+		
+		curFileItem=self.ui.listWidgetFile.currentItem()
+		if not curFileItem:
+			return
+		fname=curFileItem.text()
+		print('fname:', fname)
+		self._canvas.ax.set_title(fname)
+
+	def onCurrentFileItemChanged(self, item):
+		print('onCurrentFileItemChanged')
 		baseName=item.text()
-		absPath=self.dirName+os.sep+baseName
+#		print(baseName)
+#		absPath=self.dirName+os.sep+baseName	#√, 别手动拼接
+		absPath=os.path.realpath(baseName)
 		self.parseXmlFile(absPath)
 		
+		#顺便选中 node1
+		node1=self.ui.listWidgetNode.item(0)
+#		print('node1:', node1, node1.text())
+#		self.ui.listWidgetNode.setItemSelected(node1, True)
+		self.ui.listWidgetNode.setCurrentItem(node1)
 		
+#		self._canvas.fig.suptitle(absPath)
 		
-	def onNodeItemClicked(self, item):
-		print('itemClicked, the args: ', item, item.text())
+	def onCurrentNodeItemChanged(self, item):
+		if not item:
+			return
+		print('onCurrentNodeItemChanged:', item, item.text())
 		t=item.text()
 		idx=int(t[len(t)-1])-1
 		print('idx', idx)
@@ -155,12 +182,25 @@ class MyWindow(QMainWindow):
 #		print(dic)
 		axList=dic[Keys.kAx]
 		print(axList)
+		ayList=dic[Keys.kAy]
+		azList=dic[Keys.kAz]
 		
-		self.ui.mplWidget.canvas.ax.clear()
-		self.ui.mplWidget.canvas.ax.plot(axList)
-		self.ui.mplWidget.canvas.draw()
-					
-
+		self._canvas.ax.clear()
+		self.setAxisLabels()
+#		self._canvas.ax.lines=[]
+#		print(type(self._canvas.ax))
+		
+#		self._canvas.ax.hold(False)
+		self._canvas.ax.plot(axList, 'r')	#'o' 散点图
+#		self._canvas.ax.hold(True)
+		self._canvas.ax.plot(ayList, 'g')
+		self._canvas.ax.plot(azList, 'b')
+#		self._canvas.ax.autoscale()
+		self._canvas.setMinimumWidth(len(axList)*1.5)
+		self._canvas.draw()
+		
+#	def onNodeItemSelectionChanged(self):				
+#		print('onNodeItemSelectionChanged')
 	
 	@QtCore.pyqtSlot()
 	def on_actionOpen_triggered(self):
@@ -170,7 +210,8 @@ class MyWindow(QMainWindow):
 #											filter='XML文件 (*.xml)')
 #		self.parseXmlFile(fname)
 		self.dirName=QFileDialog.getExistingDirectory(
-													parent=self, caption='', directory=os.path.abspath(''), 
+#													parent=self, caption='', directory=os.path.abspath(''), 
+													parent=self, caption='', directory='', 
 													options=QFileDialog.ShowDirsOnly)
 #		print('self.dirName', self.dirName)
 		if(self.dirName is ''):
@@ -192,7 +233,7 @@ class MyWindow(QMainWindow):
 		
 	#解析xml， 左上角窗口填 item	
 	def parseXmlFile(self, fname):
-		if(fname==''):
+		if not os.path.exists(fname):
 			return
 		tree=ET.ElementTree(file=fname)
 #		print(dir(tree))

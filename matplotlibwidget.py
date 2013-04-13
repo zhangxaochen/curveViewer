@@ -11,12 +11,13 @@ from PyQt4 import QtGui
 class MplCanvas(FigureCanvasQTAgg):
 	def __init__(self):
 		self.fig=Figure()
+		
 		self.ax=self.fig.add_subplot(111)
+		
 #		print('type(self.ax): ', type(self.ax))	#<class 'matplotlib.axes.AxesSubplot'>
 #		self.fig.add_subplot(212)	#一个 fig 可以有多个 ax
 		
 		super().__init__(self.fig)
-#		super().
 		self.setSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Expanding)
 		self.updateGeometry()
 		
