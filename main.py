@@ -104,8 +104,9 @@ class MyWindow(QMainWindow):
 		self.ui.setupUi(self)
 		
 		self._canvas=self.ui.mplWidget.canvas
-		self._canvas.ax.clear()
-		self.setAxisLabels()
+#		self.resetAxis()
+		self._canvas.resetAxis()
+		
 #		ranNums=random.sample(range(100), 100)
 #		self._canvas.ax.plot(ranNums)
 
@@ -125,20 +126,6 @@ class MyWindow(QMainWindow):
 		
 		self.ui.listWidgetFile.currentItemChanged.connect(self.onCurrentFileItemChanged)
 	
-	def setAxisLabels(self):
-		print('setAxisLabels')
-		self._canvas.ax.grid()
-		
-		self._canvas.ax.set_xlabel('Sequential Data')
-		self._canvas.ax.set_ylabel('Acceleration(m/s^2)')
-		
-		curFileItem=self.ui.listWidgetFile.currentItem()
-		if not curFileItem:
-			return
-		fname=curFileItem.text()
-		print('fname:', fname)
-		self._canvas.ax.set_title(fname)
-
 	def onCurrentFileItemChanged(self, item):
 		print('onCurrentFileItemChanged')
 		baseName=item.text()
@@ -185,18 +172,39 @@ class MyWindow(QMainWindow):
 		ayList=dic[Keys.kAy]
 		azList=dic[Keys.kAz]
 		
-		self._canvas.ax.clear()
-		self.setAxisLabels()
-#		self._canvas.ax.lines=[]
-#		print(type(self._canvas.ax))
+		print(type(self._canvas.ax))
 		
-#		self._canvas.ax.hold(False)
-		self._canvas.ax.plot(axList, 'r')	#'o' 散点图
-#		self._canvas.ax.hold(True)
-		self._canvas.ax.plot(ayList, 'g')
-		self._canvas.ax.plot(azList, 'b')
+#		self.resetAxis()
+		curFileItem=self.ui.listWidgetFile.currentItem()
+		fname=curFileItem.text() if curFileItem else None
+		self._canvas.resetAxis(fname)
+		
+		xl=self._canvas.ax.plot(axList, 'r', label='Ax')	#'o' 散点图
+		yl=self._canvas.ax.plot(ayList, 'g', label='Ay')
+		zl=self._canvas.ax.plot(azList, 'b', label='Az')
+
+#		xl,=self._canvas.ax.plot(axList, 'r')	#'o' 散点图
+#		yl,=self._canvas.ax.plot(ayList, 'g')
+#		zl,=self._canvas.ax.plot(azList, 'b')
+#		axis=self._canvas.fig.gca()
+#		print(xl, yl, zl, )
+		
+#		self._canvas.fig.legend((xl, yl, zl), ('Ax', 'Ay', 'Az'), loc='upper left')	#√
+#		self._canvas.fig.legend(self._canvas.ax.get_lines(), ('Ax', 'Ay', 'Az'), loc='upper left')
+		self._canvas.ax.legend(loc='upper left')
+		
 #		self._canvas.ax.autoscale()
-		self._canvas.setMinimumWidth(len(axList)*1.5)
+		xleft, xright=self._canvas.ax.get_xlim()
+		xspan=xright-xleft
+		self._canvas.setMinimumWidth(xspan*2)
+#		self._canvas.ax.set_xlim(xleft, xright*2)
+#		self._canvas.ax.set_xscale('log')
+		import numpy as np
+		if xspan>200:
+			self._canvas.ax.set_xticks(np.arange(xleft, xright+1, 25))
+		
+		print(self._canvas.ax.get_xaxis())
+		
 		self._canvas.draw()
 		
 #	def onNodeItemSelectionChanged(self):				
