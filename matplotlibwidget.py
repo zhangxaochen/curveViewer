@@ -49,6 +49,7 @@ class MplCanvas(FigureCanvasQTAgg):
 		self.mousePressX=None
 		
 		
+		
 	def on_motion(self, e):
 		if not (self.mousePressX and e.inaxes is self.ax):
 #		if not self.mousePressX:	#×
