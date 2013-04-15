@@ -146,6 +146,9 @@ class MyWindow(QMainWindow):
 		if not item:
 			return
 		print('onCurrentNodeItemChanged:', item, item.text())
+#		item.setForeground(Qt.red)
+		item.setBackground(Qt.cyan)
+		
 		t=item.text()
 		idx=int(t[len(t)-1])-1
 		print('idx', idx)

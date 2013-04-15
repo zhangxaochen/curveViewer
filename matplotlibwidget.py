@@ -41,11 +41,11 @@ class MplCanvas(FigureCanvasQTAgg):
 		self.mousePressX=e.xdata
 		
 	def on_release(self, e):
-		if not self.mousePressX:
+		if not (e.inaxes is self.ax and self.mousePressX):
 			return
 		print('on_release')
-#		self.mouseReleaseX=e.xdata
 		
+		self.selectedLR=(self.mousePressX, e.xdata) if self.mousePressX<e.xdata else (e.xdata, self.mousePressX)
 		self.mousePressX=None
 		
 	def on_motion(self, e):
