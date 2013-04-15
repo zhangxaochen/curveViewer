@@ -32,7 +32,7 @@ class MplCanvas(FigureCanvasQTAgg):
 #		self.mouseReleaseX=None
 		
 		self.rect=None
-
+	
 	def on_press(self, e):
 		if not(e.inaxes is self.ax and e.button is 1):
 		#若非 axes 内左键 
@@ -47,6 +47,7 @@ class MplCanvas(FigureCanvasQTAgg):
 		
 		self.selectedLR=(self.mousePressX, e.xdata) if self.mousePressX<e.xdata else (e.xdata, self.mousePressX)
 		self.mousePressX=None
+		
 		
 	def on_motion(self, e):
 		if not (self.mousePressX and e.inaxes is self.ax):
@@ -81,7 +82,6 @@ class MplCanvas(FigureCanvasQTAgg):
 		
 		#title=fname
 		self.ax.set_title(title)
-		
 	
 class MatplotlibWidget(QtGui.QWidget):
 
@@ -91,5 +91,4 @@ class MatplotlibWidget(QtGui.QWidget):
 		self.vbl=QtGui.QVBoxLayout()
 		self.vbl.addWidget(self.canvas)
 		self.setLayout(self.vbl)
-		
 		
