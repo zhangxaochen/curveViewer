@@ -6,10 +6,11 @@ Created on Apr 11, 2013
 '''
 from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg
 from matplotlib.figure import Figure
-from PyQt4 import QtGui
+from PyQt4 import QtGui, QtCore
 from symbol import if_stmt
 
 class MplCanvas(FigureCanvasQTAgg):
+	areaSelected=QtCore.pyqtSignal(tuple)
 	def __init__(self):
 		self.fig=Figure()
 		super().__init__(self.fig)
@@ -28,49 +29,84 @@ class MplCanvas(FigureCanvasQTAgg):
 		self.mpl_connect('button_release_event', self.on_release)
 		self.mpl_connect('motion_notify_event', self.on_motion)
 		
-		self.mousePressX=None
+		self.startX=None
+		self.prevX=None
 #		self.mouseReleaseX=None
-		
-		self.rect=None
+		self.rectBar=None
+#		print('self.rectBar',self.rectBar)
+
+#		self.areaSelected=QtCore.pyqtSignal(tuple)
 	
 	def on_press(self, e):
 		if not(e.inaxes is self.ax and e.button is 1):
 		#若非 axes 内左键 
 			return
 		print('on_press')
-		self.mousePressX=e.xdata
+		self.startX=int(round(e.xdata))
 		
 	def on_release(self, e):
-		if not (e.inaxes is self.ax and self.mousePressX):
+#		if not (e.inaxes is self.ax and self.startX):
+#			return
+		if self.startX is None or e.inaxes is not self.ax:
+			#若没 press过， 或鼠标移出范围
 			return
+
 		print('on_release')
 		
-		self.selectedLR=(self.mousePressX, e.xdata) if self.mousePressX<e.xdata else (e.xdata, self.mousePressX)
-		self.mousePressX=None
+		endX=int(round(e.xdata))
+		if self.startX is not endX:
+			self.selectedLR=(self.startX, endX) if self.startX<endX else (endX, self.startX)
+			self.areaSelected.emit(self.selectedLR)
 		
+		self.startX=None
 		
 		
 	def on_motion(self, e):
-		if not (self.mousePressX and e.inaxes is self.ax):
-#		if not self.mousePressX:	#×
-			#若非 press 过了，且鼠标仍在 axes 内 
+		if self.startX is None or e.inaxes is not self.ax:
+			#若没 press过， 或鼠标移出范围
 			return
 #		print('on_motion')
+		curX=int(round(e.xdata))
+		
+#		if self.prevX is None or self.prevX is not curX:
+		if self.prevX is not curX:
+			print('self.prevX, self.startX, curX:', self.prevX, self.startX, curX)
+			self.drawRectArea(self.startX, curX)
+		self.prevX=curX	
+		
+	
+	def drawRectArea(self, start, end):
+		'''
+		e 鼠标 event
+		'''
+		print('drawRectArea:', start, end)
+		if self.rectBar:
+#			print('------removing self.rectBar----:', self.rectBar)
+#			print('id(self.rectBar):', id(self.rectBar))
+			self.rectBar.remove()
+			self.rectBar=None
+			self.draw()	#卧槽忘了。。
 		yBottom, yTop=self.ax.get_ylim()
 		axHeight=yTop-yBottom
-		width=e.xdata-self.mousePressX
-		if self.rect:		#切换 node 时候，导致 ValueError: list.remove(x): x not in list
-#			print(self.rect.get_axes())
-#			print(self.rect.get_figure())
-			self.rect.remove()
-#			print(self.rect)
-		self.rect, =self.ax.bar(self.mousePressX, axHeight, width, yBottom)
-		self.rect.set_alpha(.5)
+		width=end-start
+#		print(width)
+		if width is 0:
+			print('width is 0')
+			return
+		self.rectBar, =self.ax.bar(start, axHeight, width, yBottom)
+#		print('id(self.rectBar):', id(self.rectBar))
+#		print(type(self.rectBar))
+#		self.rectBar =self.ax.bar(start, axHeight, width, yBottom)
+		self.rectBar.set_alpha(.5)
 		self.draw()
+		pass
 	
 	def resetAxis(self, title=None):
-		if self.rect:
-			self.rect=None
+#		if self.rectBar:
+#			self.rectBar=None
+		self.rectBar=None
+		self.startX=None
+		self.prevX=None
 		
 		self.ax.clear()
 		self.ax.grid()

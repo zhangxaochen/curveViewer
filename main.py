@@ -102,11 +102,12 @@ class MyWindow(QMainWindow):
 		super().__init__(parent)
 		self.ui=Ui_MainWindow()
 		self.ui.setupUi(self)
-		
+
 		self._canvas=self.ui.mplWidget.canvas
-#		self.resetAxis()
 		self._canvas.resetAxis()
 		
+		self.fileItemMarkBg=Qt.green
+		self.nodeItemMarkBg=Qt.yellow
 #		ranNums=random.sample(range(100), 100)
 #		self._canvas.ax.plot(ranNums)
 
@@ -123,8 +124,9 @@ class MyWindow(QMainWindow):
 #		self.ui.listWidgetNode.itemActivated.connect(lambda x:print('itemActivated, the args: ', x))	#要双击
 #		self.ui.listWidgetNode.itemSelectionChanged.connect(self.onNodeItemSelectionChanged)
 		self.ui.listWidgetNode.currentItemChanged.connect(self.onCurrentNodeItemChanged)
-		
 		self.ui.listWidgetFile.currentItemChanged.connect(self.onCurrentFileItemChanged)
+
+		self._canvas.areaSelected.connect(self.onAxisAreaSelected)
 	
 	def onCurrentFileItemChanged(self, item):
 		print('onCurrentFileItemChanged')
@@ -146,21 +148,16 @@ class MyWindow(QMainWindow):
 		if not item:
 			return
 		print('onCurrentNodeItemChanged:', item, item.text())
-#		item.setForeground(Qt.red)
-		item.setBackground(Qt.cyan)
 		
-		t=item.text()
-		idx=int(t[len(t)-1])-1
-		print('idx', idx)
-		eNode=self.xml.eNodeList[idx]
+		eNode=self.xml.eNodeList[item.idx]
 		eDataList=eNode.findall(Keys.kData)
 		#========================xmlDataList is [ {[]...[]}, ..., {[]...[]} ]
 		#扩充 xmlDataList，如果必要
 		llen=len(self.xmlDataList)
-		if llen<idx+1:
-			for i in range(idx+1-llen):
+		if llen<item.idx+1:
+			for i in range(item.idx+1-llen):
 				self.xmlDataList.append({})	#append empty dict
-		dic=self.xmlDataList[idx]
+		dic=self.xmlDataList[item.idx]
 		if not dic:	#dic is empty
 #			for i in range(len(eDataList[0].attrib)):
 				
@@ -177,11 +174,12 @@ class MyWindow(QMainWindow):
 		
 		print(type(self._canvas.ax))
 		
-#		self.resetAxis()
+		#重置 ax
 		curFileItem=self.ui.listWidgetFile.currentItem()
 		fname=curFileItem.text() if curFileItem else None
 		self._canvas.resetAxis(fname)
 		
+		#绘制三条曲线
 		xl=self._canvas.ax.plot(axList, 'r', label='Ax')	#'o' 散点图
 		yl=self._canvas.ax.plot(ayList, 'g', label='Ay')
 		zl=self._canvas.ax.plot(azList, 'b', label='Az')
@@ -192,10 +190,14 @@ class MyWindow(QMainWindow):
 #		axis=self._canvas.fig.gca()
 #		print(xl, yl, zl, )
 		
-#		self._canvas.fig.legend((xl, yl, zl), ('Ax', 'Ay', 'Az'), loc='upper left')	#√
-#		self._canvas.fig.legend(self._canvas.ax.get_lines(), ('Ax', 'Ay', 'Az'), loc='upper left')
 		self._canvas.ax.legend(loc='upper left')
 		
+		#绘制鼠标选定的区域
+		rectLR=item.areaSelected
+		if rectLR:
+			self._canvas.drawRectArea(rectLR[0], rectLR[1])
+
+		#canvas 横向拉伸，避免太拥挤
 #		self._canvas.ax.autoscale()
 		xleft, xright=self._canvas.ax.get_xlim()
 		xspan=xright-xleft
@@ -213,6 +215,41 @@ class MyWindow(QMainWindow):
 #	def onNodeItemSelectionChanged(self):				
 #		print('onNodeItemSelectionChanged')
 	
+	def onAxisAreaSelected(self, t):
+		'''
+		t: self._canvas.selectedLR tuple
+		'''
+		print('onAxisAreaSelected', t)
+		curNodeItem=self.ui.listWidgetNode.currentItem()
+		if not curNodeItem:
+			return		
+		
+		curFileItem=self.ui.listWidgetFile.currentItem()
+		#如果 listWidgetFile 里面有选中的 item
+		if curFileItem:
+			#若第一次在node上框选
+			if not curNodeItem.areaSelected:
+				curFileItem.nodeProcessed+=1
+				#如果当前 file 的 node 都处理过了
+				if curFileItem.nodeProcessed is self.ui.listWidgetNode.count():
+					curFileItem.setBackgroundColor(self.fileItemMarkBg)
+			
+			atl=curFileItem.areaTupleList
+#			num=self.ui.listWidgetNode.count()-len(atl)
+#			if num>0:	#应该只执行一次
+#				atl.append([None]*num)
+			
+#			if not atl:
+#				atl.append([None]*self.ui.listWidgetNode.count())
+			
+			atl[curNodeItem.idx]=t
+			print(atl)
+			
+		curNodeItem.areaSelected=t
+		#node 变色
+		curNodeItem.setBackgroundColor(self.nodeItemMarkBg)
+		
+	
 	@QtCore.pyqtSlot()
 	def on_actionOpen_triggered(self):
 		print("on_actionOpen_triggered")
@@ -222,7 +259,7 @@ class MyWindow(QMainWindow):
 #		self.parseXmlFile(fname)
 		self.dirName=QFileDialog.getExistingDirectory(
 #													parent=self, caption='', directory=os.path.abspath(''), 
-													parent=self, caption='', directory='', 
+													parent=self, caption='', directory=os.path.curdir, 
 													options=QFileDialog.ShowDirsOnly)
 #		print('self.dirName', self.dirName)
 		if(self.dirName is ''):
@@ -236,15 +273,21 @@ class MyWindow(QMainWindow):
 		
 		self.ui.listWidgetFile.clear()
 		for fname in xmlFileList:
-			self.ui.listWidgetFile.addItem(fname)
+			fileItem=QListWidgetItem(fname)
+			fileItem.nodeProcessed=0
+			fileItem.areaTupleList=[]
+			self.ui.listWidgetFile.addItem(fileItem)
+		
 	
 	@QtCore.pyqtSlot()
 	def on_actionExit_triggered(self):
 		print("on_actionExit_triggered")
 		
-	#解析xml， 左上角窗口填 item	
+	#解析xml， node 窗口填 item	
 	def parseXmlFile(self, fname):
+		print('parseXmlFile')
 		if not os.path.exists(fname):
+			print('if not os.path.exists(fname):')
 			return
 		tree=ET.ElementTree(file=fname)
 #		print(dir(tree))
@@ -255,8 +298,27 @@ class MyWindow(QMainWindow):
 		self.xml.elemNodes=self.xml.elemRoot.find(Keys.kNodes)
 		self.xml.eNodeList=self.xml.elemNodes.findall(Keys.kNode)	#list
 		self.ui.listWidgetNode.clear()
+#		for i in self.xml.elemNodes:
+#			print('i:', i)
+#		print(self.xml.elemNodes[1], )
+		
+		curFileItem=self.ui.listWidgetFile.currentItem()
+		if curFileItem and not curFileItem.areaTupleList:
+			print('if curFileItem and not curFileItem.areaTupleList:')
+			#若 areaTupleList ==[]
+			curFileItem.areaTupleList+=[None]*len(self.xml.eNodeList)
+			print(curFileItem.areaTupleList)
 		for i in range(len(self.xml.eNodeList)):
-			self.ui.listWidgetNode.addItem('node %d'%(i+1))
+			nodeItem=QListWidgetItem('node %d'%(i+1))
+			nodeItem.idx=i
+#			if curFileItem and curFileItem.areaTupleList:
+			if curFileItem:
+				nodeItem.areaSelected=curFileItem.areaTupleList[i]
+			else:
+				nodeItem.areaSelected=None
+			if nodeItem.areaSelected:
+				nodeItem.setBackgroundColor(self.nodeItemMarkBg)
+			self.ui.listWidgetNode.addItem(nodeItem)
 		
 		self.xmlDataList.clear()
 		
