@@ -14,7 +14,9 @@ import random
 import sys
 import time
 import xml.etree.ElementTree as ET
+from lxml import etree
 from xml.dom import minidom
+import traceback
 #from xml.etree.ElementTree import ElementTree
 
 class Keys:
@@ -292,11 +294,15 @@ class MyWindow(QMainWindow):
 		
 	@QtCore.pyqtSlot()
 	def on_actionSave_triggered(self):
-		print('on_actionSave_triggered')
+		print('on_actionSave_triggered+++++++++')
 		pathTo='./segmented'
 		if not os.path.exists(pathTo):
 			os.makedirs(pathTo)
 		fileSelectedList=self.ui.listWidgetFile.selectedItems()
+		if len(fileSelectedList) is 0:
+			self.ui.statusbar.showMessage('No file item selected!!!')
+			return
+			
 		for fileItem in fileSelectedList:
 			if not fileItem.finishSeg:
 				msg='selected file "%s" not finished segmentation'%fileItem.text()
@@ -304,37 +310,37 @@ class MyWindow(QMainWindow):
 				self.ui.statusbar.showMessage(msg)
 				return
 		#对每个 file
+		psr = etree.XMLParser(remove_blank_text=True)
 		for fileItem in fileSelectedList:
 			fname=fileItem.text()
-			tree=ET.ElementTree(file=fname)
+#			tree=etree.ElementTree(file=fname, parser=psr)
+			tree=etree.parse(fname, parser=psr)
 			elemRoot=tree.getroot()
 			elemNodes=elemRoot[0]
-#			newNodes=ET.Element(tag='Nodes')
-			newNodes=ET.Element('Nodes')
 			#对每个 node
 			for i in range(len(elemNodes)):
-				elemNode=elemNodes[i]
 				left, right=fileItem.areaTupleList[i]
-#				newNode=ET.Element(tag='Node')
-				newNode=ET.Element('Node')
+				elemNode=elemNodes[i]
+				elemNode.set('frames', str(right-left))
+				print('left, right:', left, right)
 				#对每个选中的 data
-				for j in range(left, right+1):
-					data=elemNode[j]
-					newNode.append(data)
-				newNodes.append(newNode)
-#			newRoot=ET.Element(tag='CaptureSession')
-			newRoot=ET.Element('CaptureSession')
-			newRoot.append(newNodes)
-			newTree=ET.ElementTree(element=newRoot, )
+#				for j in range(left, right+1):
+				#先从右边移除：
+				for data in elemNode[right:]:
+					elemNode.remove(data)
+				for data in elemNode[:left]:
+					elemNode.remove(data)
 			absPath=pathTo+os.path.sep+fname
-			absPathPretty=pathTo+os.path.sep+'pretty-'+fname
-			newTree.write(absPath, encoding='utf-8', xml_declaration=True)
-			file=open(absPathPretty, 'w')
-			prettyxml=minidom.parseString(ET.tostring(element=newRoot, encoding='utf-8')).toprettyxml()
-#			print(prettyxml)
-			file.write(prettyxml)
-			file.close()
-			
+#			absPathPretty=pathTo+os.path.sep+'pretty-'+fname
+#			newTree.write(absPath, encoding='utf-8', pretty_print=True, xml_declaration=True)
+			tree.write(absPath, encoding='utf-8', pretty_print=True, xml_declaration=True)
+#			file=open(absPathPretty, 'w')
+##			prettyxml=minidom.parseString(etree.tostring(element=newRoot, encoding='utf-8')).toprettyxml()	#shit minidom
+#			prettyxml=etree.tostring(newRoot, pretty_print=True).decode('gb18030')	#√
+##			print(prettyxml)
+#			file.write(prettyxml)
+#			file.close()
+
 		
 	#解析xml， node 窗口填 item	
 	def parseXmlFile(self, fname):
