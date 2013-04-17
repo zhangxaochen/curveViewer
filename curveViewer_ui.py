@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'curveViewer.ui'
 #
-# Created: Sat Apr 13 12:34:40 2013
+# Created: Wed Apr 17 13:29:39 2013
 #      by: PyQt4 UI code generator 4.10
 #
 # WARNING! All changes made in this file will be lost!
@@ -37,14 +37,14 @@ class Ui_MainWindow(object):
         self.splitter = QtGui.QSplitter(self.splitter_2)
         self.splitter.setOrientation(QtCore.Qt.Vertical)
         self.splitter.setObjectName(_fromUtf8("splitter"))
-        self.widget = QtGui.QWidget(self.splitter)
-        self.widget.setObjectName(_fromUtf8("widget"))
-        self.verticalLayout = QtGui.QVBoxLayout(self.widget)
+        self.layoutWidget = QtGui.QWidget(self.splitter)
+        self.layoutWidget.setObjectName(_fromUtf8("layoutWidget"))
+        self.verticalLayout = QtGui.QVBoxLayout(self.layoutWidget)
         self.verticalLayout.setMargin(0)
         self.verticalLayout.setObjectName(_fromUtf8("verticalLayout"))
         self.horizontalLayout = QtGui.QHBoxLayout()
         self.horizontalLayout.setObjectName(_fromUtf8("horizontalLayout"))
-        self.label = QtGui.QLabel(self.widget)
+        self.label = QtGui.QLabel(self.layoutWidget)
         sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Preferred, QtGui.QSizePolicy.Preferred)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
@@ -54,7 +54,7 @@ class Ui_MainWindow(object):
         self.label.setAlignment(QtCore.Qt.AlignLeading|QtCore.Qt.AlignLeft|QtCore.Qt.AlignVCenter)
         self.label.setObjectName(_fromUtf8("label"))
         self.horizontalLayout.addWidget(self.label)
-        self.labelDirOpened = QtGui.QLabel(self.widget)
+        self.labelDirOpened = QtGui.QLabel(self.layoutWidget)
         sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Fixed)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
@@ -63,7 +63,8 @@ class Ui_MainWindow(object):
         self.labelDirOpened.setObjectName(_fromUtf8("labelDirOpened"))
         self.horizontalLayout.addWidget(self.labelDirOpened)
         self.verticalLayout.addLayout(self.horizontalLayout)
-        self.listWidgetFile = QtGui.QListWidget(self.widget)
+        self.listWidgetFile = QtGui.QListWidget(self.layoutWidget)
+        self.listWidgetFile.setSelectionMode(QtGui.QAbstractItemView.ExtendedSelection)
         self.listWidgetFile.setObjectName(_fromUtf8("listWidgetFile"))
         self.verticalLayout.addWidget(self.listWidgetFile)
         self.listWidgetNode = QtGui.QListWidget(self.splitter)
@@ -101,7 +102,10 @@ class Ui_MainWindow(object):
         self.actionOpen.setObjectName(_fromUtf8("actionOpen"))
         self.actionExit = QtGui.QAction(MainWindow)
         self.actionExit.setObjectName(_fromUtf8("actionExit"))
+        self.actionSave = QtGui.QAction(MainWindow)
+        self.actionSave.setObjectName(_fromUtf8("actionSave"))
         self.menuFile.addAction(self.actionOpen)
+        self.menuFile.addAction(self.actionSave)
         self.menuFile.addAction(self.actionExit)
         self.menubar.addAction(self.menuFile.menuAction())
 
@@ -119,5 +123,7 @@ class Ui_MainWindow(object):
         self.actionExit.setText(_translate("MainWindow", "E(&x)it", None))
         self.actionExit.setToolTip(_translate("MainWindow", "E(x)it", None))
         self.actionExit.setShortcut(_translate("MainWindow", "Ctrl+Q", None))
+        self.actionSave.setText(_translate("MainWindow", "(&S)ave", None))
+        self.actionSave.setShortcut(_translate("MainWindow", "Ctrl+S", None))
 
 from matplotlibwidget import MatplotlibWidget

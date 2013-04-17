@@ -42,7 +42,8 @@ class MplCanvas(FigureCanvasQTAgg):
 		#若非 axes 内左键 
 			return
 		print('on_press')
-		self.startX=int(round(e.xdata))
+		if not self.startX:
+			self.startX=int(round(e.xdata))
 		
 	def on_release(self, e):
 #		if not (e.inaxes is self.ax and self.startX):
@@ -54,6 +55,7 @@ class MplCanvas(FigureCanvasQTAgg):
 		print('on_release')
 		
 		endX=int(round(e.xdata))
+		print('self.startX, endX:', self.startX, endX)
 		if self.startX is not endX:
 			self.selectedLR=(self.startX, endX) if self.startX<endX else (endX, self.startX)
 			self.areaSelected.emit(self.selectedLR)

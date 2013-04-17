@@ -12,7 +12,9 @@ import glob
 import os
 import random
 import sys
+import time
 import xml.etree.ElementTree as ET
+from xml.dom import minidom
 #from xml.etree.ElementTree import ElementTree
 
 class Keys:
@@ -134,7 +136,10 @@ class MyWindow(QMainWindow):
 #		print(baseName)
 #		absPath=self.dirName+os.sep+baseName	#√, 别手动拼接
 		absPath=os.path.realpath(baseName)
+		st=time.time()
 		self.parseXmlFile(absPath)
+		et=time.time()
+		print('et-st:', et-st)		
 		
 		#顺便选中 node1
 		node1=self.ui.listWidgetNode.item(0)
@@ -232,6 +237,7 @@ class MyWindow(QMainWindow):
 				curFileItem.nodeProcessed+=1
 				#如果当前 file 的 node 都处理过了
 				if curFileItem.nodeProcessed is self.ui.listWidgetNode.count():
+					curFileItem.finishSeg=True
 					curFileItem.setBackgroundColor(self.fileItemMarkBg)
 			
 			atl=curFileItem.areaTupleList
@@ -275,6 +281,7 @@ class MyWindow(QMainWindow):
 		for fname in xmlFileList:
 			fileItem=QListWidgetItem(fname)
 			fileItem.nodeProcessed=0
+			fileItem.finishSeg=False
 			fileItem.areaTupleList=[]
 			self.ui.listWidgetFile.addItem(fileItem)
 		
@@ -283,13 +290,61 @@ class MyWindow(QMainWindow):
 	def on_actionExit_triggered(self):
 		print("on_actionExit_triggered")
 		
+	@QtCore.pyqtSlot()
+	def on_actionSave_triggered(self):
+		print('on_actionSave_triggered')
+		pathTo='./segmented'
+		if not os.path.exists(pathTo):
+			os.makedirs(pathTo)
+		fileSelectedList=self.ui.listWidgetFile.selectedItems()
+		for fileItem in fileSelectedList:
+			if not fileItem.finishSeg:
+				msg='selected file "%s" not finished segmentation'%fileItem.text()
+				print(msg)
+				self.ui.statusbar.showMessage(msg)
+				return
+		#对每个 file
+		for fileItem in fileSelectedList:
+			fname=fileItem.text()
+			tree=ET.ElementTree(file=fname)
+			elemRoot=tree.getroot()
+			elemNodes=elemRoot[0]
+#			newNodes=ET.Element(tag='Nodes')
+			newNodes=ET.Element('Nodes')
+			#对每个 node
+			for i in range(len(elemNodes)):
+				elemNode=elemNodes[i]
+				left, right=fileItem.areaTupleList[i]
+#				newNode=ET.Element(tag='Node')
+				newNode=ET.Element('Node')
+				#对每个选中的 data
+				for j in range(left, right+1):
+					data=elemNode[j]
+					newNode.append(data)
+				newNodes.append(newNode)
+#			newRoot=ET.Element(tag='CaptureSession')
+			newRoot=ET.Element('CaptureSession')
+			newRoot.append(newNodes)
+			newTree=ET.ElementTree(element=newRoot, )
+			absPath=pathTo+os.path.sep+fname
+			absPathPretty=pathTo+os.path.sep+'pretty-'+fname
+			newTree.write(absPath, encoding='utf-8', xml_declaration=True)
+			file=open(absPathPretty, 'w')
+			prettyxml=minidom.parseString(ET.tostring(element=newRoot, encoding='utf-8')).toprettyxml()
+#			print(prettyxml)
+			file.write(prettyxml)
+			file.close()
+			
+		
 	#解析xml， node 窗口填 item	
 	def parseXmlFile(self, fname):
 		print('parseXmlFile')
 		if not os.path.exists(fname):
 			print('if not os.path.exists(fname):')
 			return
+
 		tree=ET.ElementTree(file=fname)
+
 #		print(dir(tree))
 
 		self.xml.elemRoot=tree.getroot()	#captureSession
@@ -327,7 +382,7 @@ def main():
 	app=QApplication(sys.argv)
 	win=MyWindow()
 	win.show()
-	sys.exit(app.exec())
+	sys.exit(app.exec_())
 
 if __name__ == '__main__':
 	main()
