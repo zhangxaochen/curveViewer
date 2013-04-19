@@ -13,7 +13,7 @@ class MplCanvas(FigureCanvasQTAgg):
 	areaSelected=QtCore.pyqtSignal(tuple)
 	def __init__(self):
 		self.fig=Figure()
-		super().__init__(self.fig)
+		super(MplCanvas, self).__init__(self.fig)
 		
 		self.ax=self.fig.add_subplot(111)
 #		self.fig.add_subplot(211)
@@ -125,7 +125,7 @@ class MplCanvas(FigureCanvasQTAgg):
 class MatplotlibWidget(QtGui.QWidget):
 
 	def __init__(self, parent=None):
-		super().__init__(parent)
+		super(MatplotlibWidget, self).__init__(parent)
 		self.canvas=MplCanvas()
 		self.vbl=QtGui.QVBoxLayout()
 		self.vbl.addWidget(self.canvas)

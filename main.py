@@ -50,7 +50,7 @@ class Keys:
 class MyWidgetCurveView(QWidget):
 	dataDictList=[]
 	def __init__(self):
-		super().__init__()
+		super(MyWidgetCurveView, self).__init__()
 #		self.setMinimumWidth(1111)
 #		print(self.width())
 #		self.resize(self.width()*2, self.height())	#没用啊。尽管 width 变了
@@ -103,7 +103,7 @@ class MyWindow(QMainWindow):
 	xmlDataList=[]
 	
 	def __init__(self, parent=None):
-		super().__init__(parent)
+		super(MyWindow, self).__init__(parent)
 		self.ui=Ui_MainWindow()
 		self.ui.setupUi(self)
 
