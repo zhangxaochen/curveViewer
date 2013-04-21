@@ -302,17 +302,26 @@ class MyWindow(QMainWindow):
 		if len(fileSelectedList) is 0:
 			self.ui.statusbar.showMessage('No file item selected!!!')
 			return
-			
+		
+		#检查选中的 fileItem 是否都分割过了	
 		for fileItem in fileSelectedList:
 			if not fileItem.finishSeg:
 				msg='selected file "%s" not finished segmentation'%fileItem.text()
 				print(msg)
 				self.ui.statusbar.showMessage(msg)
 				return
-		#对每个 file
+
+		#ljj
+		configFile=open(pathTo+os.path.sep+'config.txt', 'w')
+		
 		psr = etree.XMLParser(remove_blank_text=True)
+		#对每个 file
 		for fileItem in fileSelectedList:
 			fname=fileItem.text()
+			
+			#按李嘉俊要求：ljj
+			fallingID =os.path.splitext(fname)[0]
+			
 #			tree=etree.ElementTree(file=fname, parser=psr)
 			tree=etree.parse(fname, parser=psr)
 			elemRoot=tree.getroot()
@@ -323,6 +332,11 @@ class MyWindow(QMainWindow):
 				elemNode=elemNodes[i]
 				elemNode.set('frames', str(right-left))
 				print('left, right:', left, right)
+				
+				#ljj
+				configFile.write('%s\t%d\t%d\n'%(fallingID, left, right))
+				
+				
 				#对每个选中的 data
 #				for j in range(left, right+1):
 				#先从右边移除：
