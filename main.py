@@ -17,6 +17,7 @@ import xml.etree.ElementTree as ET
 from lxml import etree
 from xml.dom import minidom
 import traceback
+from utils import Utils
 #from xml.etree.ElementTree import ElementTree
 
 class Keys:
@@ -48,6 +49,7 @@ class Keys:
 	
 
 class MyWidgetCurveView(QWidget):
+	
 	dataDictList=[]
 	def __init__(self):
 		super(MyWidgetCurveView, self).__init__()
@@ -175,21 +177,47 @@ class MyWindow(QMainWindow):
 					dic[k].append(v)
 #		print(dic)
 		axList=dic[Keys.kAx]
-		print(axList)
+		print('axList is:',axList)
 		ayList=dic[Keys.kAy]
 		azList=dic[Keys.kAz]
 		
-		print(type(self._canvas.ax))
+		#计算世界坐标数据：
+		dataCnt=len(axList)
+		axWfList=[0]*dataCnt
+		ayWfList=[0]*dataCnt
+		azWfList=[0]*dataCnt
 		
-		#重置 ax
+		for i in range(dataCnt):
+			rotationVector = [
+							dic[Keys.kRx][i],
+							dic[Keys.kRy][i],
+							dic[Keys.kRz][i]
+						]
+			accVector=[
+				dic[Keys.kAx][i],
+				dic[Keys.kAy][i],
+				dic[Keys.kAz][i]
+				]
+			rotationMatrix=Utils.getRotationMatrixFromVector(rotationVector)
+			wfList=Utils.multiplyMV3(rotationMatrix, accVector)
+			print('wfList is:',wfList)
+			axWfList[i]=wfList[0]
+			ayWfList[i]=wfList[1]
+			azWfList[i]=wfList[2]
+		
+		print('type(self._canvas.ax) is:',type(self._canvas.ax))
+		
+		#重置 ax， 清除 legend、lines、坐标
 		curFileItem=self.ui.listWidgetFile.currentItem()
 		fname=curFileItem.text() if curFileItem else None
 		self._canvas.resetAxis(fname)
 		
 		#绘制三条曲线
-		xl=self._canvas.ax.plot(axList, 'r', label='Ax')	#'o' 散点图
-		yl=self._canvas.ax.plot(ayList, 'g', label='Ay')
-		zl=self._canvas.ax.plot(azList, 'b', label='Az')
+		if self.ui.actionAccBodyFrame.isChecked():
+			xl=self._canvas.ax.plot(axList, 'r', label='AxBF', linestyle='-')	#'o' 散点图
+			yl=self._canvas.ax.plot(ayList, 'g', label='AyBF')
+			zl=self._canvas.ax.plot(azList, 'b', label='AzBF')
+			self._canvas.ax.legend(loc='upper left')
 
 #		xl,=self._canvas.ax.plot(axList, 'r')	#'o' 散点图
 #		yl,=self._canvas.ax.plot(ayList, 'g')
@@ -197,7 +225,13 @@ class MyWindow(QMainWindow):
 #		axis=self._canvas.fig.gca()
 #		print(xl, yl, zl, )
 		
-		self._canvas.ax.legend(loc='upper left')
+		#acc 世界坐标曲线
+		if self.ui.actionAccWorldFrame.isChecked():
+			self._canvas.ax.plot(axWfList, 'r', label='AxWF', linewidth=2, linestyle='--')
+			self._canvas.ax.plot(ayWfList, 'g', label='AyWF', linewidth=2, linestyle='--')
+			self._canvas.ax.plot(azWfList, 'b', label='AzWF', linewidth=2, linestyle='--')
+			self._canvas.ax.legend(loc='upper left')
+
 		
 		#绘制鼠标选定的区域
 		rectLR=item.areaSelected
@@ -355,6 +389,18 @@ class MyWindow(QMainWindow):
 #			file.write(prettyxml)
 #			file.close()
 
+	@QtCore.pyqtSlot(bool)
+	def on_actionAccBodyFrame_triggered(self, checked=None):
+		print("on_actionAccBodyFrame_triggered, checked=", checked)
+		self.onCurrentNodeItemChanged(self.ui.listWidgetNode.currentItem())
+		
+		
+	@QtCore.pyqtSlot(bool)
+	def on_actionAccWorldFrame_triggered(self, checked):
+		print("on_actionAccWorldFrame_triggered, checked=", checked)
+		self.onCurrentNodeItemChanged(self.ui.listWidgetNode.currentItem())
+		
+
 		
 	#解析xml， node 窗口填 item	
 	def parseXmlFile(self, fname):
@@ -406,5 +452,4 @@ def main():
 
 if __name__ == '__main__':
 	main()
-	
 	

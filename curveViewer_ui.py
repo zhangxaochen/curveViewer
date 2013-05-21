@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'curveViewer.ui'
 #
-# Created: Wed Apr 17 13:29:39 2013
+# Created: Tue May 21 21:37:34 2013
 #      by: PyQt4 UI code generator 4.10
 #
 # WARNING! All changes made in this file will be lost!
@@ -94,6 +94,8 @@ class Ui_MainWindow(object):
         self.menubar.setObjectName(_fromUtf8("menubar"))
         self.menuFile = QtGui.QMenu(self.menubar)
         self.menuFile.setObjectName(_fromUtf8("menuFile"))
+        self.menuView = QtGui.QMenu(self.menubar)
+        self.menuView.setObjectName(_fromUtf8("menuView"))
         MainWindow.setMenuBar(self.menubar)
         self.statusbar = QtGui.QStatusBar(MainWindow)
         self.statusbar.setObjectName(_fromUtf8("statusbar"))
@@ -104,10 +106,20 @@ class Ui_MainWindow(object):
         self.actionExit.setObjectName(_fromUtf8("actionExit"))
         self.actionSave = QtGui.QAction(MainWindow)
         self.actionSave.setObjectName(_fromUtf8("actionSave"))
+        self.actionAccBodyFrame = QtGui.QAction(MainWindow)
+        self.actionAccBodyFrame.setCheckable(True)
+        self.actionAccBodyFrame.setChecked(True)
+        self.actionAccBodyFrame.setObjectName(_fromUtf8("actionAccBodyFrame"))
+        self.actionAccWorldFrame = QtGui.QAction(MainWindow)
+        self.actionAccWorldFrame.setCheckable(True)
+        self.actionAccWorldFrame.setObjectName(_fromUtf8("actionAccWorldFrame"))
         self.menuFile.addAction(self.actionOpen)
         self.menuFile.addAction(self.actionSave)
         self.menuFile.addAction(self.actionExit)
+        self.menuView.addAction(self.actionAccBodyFrame)
+        self.menuView.addAction(self.actionAccWorldFrame)
         self.menubar.addAction(self.menuFile.menuAction())
+        self.menubar.addAction(self.menuView.menuAction())
 
         self.retranslateUi(MainWindow)
         QtCore.QObject.connect(self.actionExit, QtCore.SIGNAL(_fromUtf8("triggered()")), MainWindow.close)
@@ -117,6 +129,7 @@ class Ui_MainWindow(object):
         MainWindow.setWindowTitle(_translate("MainWindow", "MainWindow", None))
         self.labelDirOpened.setText(_translate("MainWindow", "N/a", None))
         self.menuFile.setTitle(_translate("MainWindow", "&File", None))
+        self.menuView.setTitle(_translate("MainWindow", "&View", None))
         self.actionOpen.setText(_translate("MainWindow", "(&O)pen", None))
         self.actionOpen.setToolTip(_translate("MainWindow", "Open a XML file", None))
         self.actionOpen.setShortcut(_translate("MainWindow", "Ctrl+O", None))
@@ -125,5 +138,9 @@ class Ui_MainWindow(object):
         self.actionExit.setShortcut(_translate("MainWindow", "Ctrl+Q", None))
         self.actionSave.setText(_translate("MainWindow", "(&S)ave", None))
         self.actionSave.setShortcut(_translate("MainWindow", "Ctrl+S", None))
+        self.actionAccBodyFrame.setText(_translate("MainWindow", "AccBodyFrame", None))
+        self.actionAccBodyFrame.setShortcut(_translate("MainWindow", "Alt+A, B", None))
+        self.actionAccWorldFrame.setText(_translate("MainWindow", "AccWorldFrame", None))
+        self.actionAccWorldFrame.setShortcut(_translate("MainWindow", "Alt+A, W", None))
 
 from matplotlibwidget import MatplotlibWidget
