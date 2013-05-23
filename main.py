@@ -190,6 +190,12 @@ class MyWindow(QMainWindow):
 		ayList=dic[Keys.kAy]
 		azList=dic[Keys.kAz]
 		accList=[axList, ayList, azList]
+		#不好：
+#		accList=[
+#				dic[Keys.kAx],
+#				dic[Keys.kAy],
+#				[float(az)-9.80665 for az in dic[Keys.kAz] ]
+#				]
 		
 		#计算世界坐标数据：
 		dataCnt=len(axList)
@@ -227,10 +233,8 @@ class MyWindow(QMainWindow):
 				#速度：
 				for k in range(3):
 					acc=accWfList[k][i-1]
-#					if k==2:
-#						acc-=9.80665
-						
 					velList[k][i]=velList[k][i-1]+acc*(tsList[i]-tsList[i-1])/1000
+					
 				#位移：
 				for k in range(3):
 					disList[k][i]=disList[k][i-1]+velList[k][i-1]*(tsList[i]-tsList[i-1])/1000
