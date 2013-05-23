@@ -20,6 +20,7 @@ import traceback
 from utils import Utils
 from matplotlib.pyplot import annotate
 from distutils.command.check import check
+import math
 #from xml.etree.ElementTree import ElementTree
 
 class Keys:
@@ -271,6 +272,9 @@ class MyWindow(QMainWindow):
 			ax.plot(velList[0], 'r', label='Vx', linewidth=2)
 			ax.plot(velList[1], 'g', label='Vy', linewidth=2)
 			ax.plot(velList[2], 'b', label='Vz', linewidth=2)
+			print('velList[0] is:',velList[0])
+			vxyList=[math.sqrt(velList[0][i]**2+velList[1][i]**2) for i in range(dataCnt)]
+			ax.plot(vxyList, 'magenta', label='Vxy', linewidth=2)
 			
 		#位移曲线
 		if self.ui.actionDisplacement.isChecked():
