@@ -18,6 +18,8 @@ from lxml import etree
 from xml.dom import minidom
 import traceback
 from utils import Utils
+from matplotlib.pyplot import annotate
+from distutils.command.check import check
 #from xml.etree.ElementTree import ElementTree
 
 class Keys:
@@ -26,7 +28,8 @@ class Keys:
 	kNode='Node'
 	kData='Data'
 	
-	kTs='timestamp'
+	kTs='ts'
+	kTimestamp='timestamp'
 	
 	kAx='Ax'
 	kAy='Ay'
@@ -53,6 +56,7 @@ class MyWidgetCurveView(QWidget):
 	dataDictList=[]
 	def __init__(self):
 		super(MyWidgetCurveView, self).__init__()
+		
 #		self.setMinimumWidth(1111)
 #		print(self.width())
 #		self.resize(self.width()*2, self.height())	#没用啊。尽管 width 变了
@@ -133,7 +137,7 @@ class MyWindow(QMainWindow):
 		self.ui.listWidgetFile.currentItemChanged.connect(self.onCurrentFileItemChanged)
 
 		self._canvas.areaSelected.connect(self.onAxisAreaSelected)
-	
+		
 	def onCurrentFileItemChanged(self, item):
 		print('onCurrentFileItemChanged')
 		baseName=item.text()
@@ -176,35 +180,61 @@ class MyWindow(QMainWindow):
 						dic[k]=[]
 					dic[k].append(v)
 #		print(dic)
+		tsList=dic[Keys.kTs] if dic.get(Keys.kTs) else dic[Keys.kTimestamp]
+		tsList=list(map(float, tsList))
+		fps=len(tsList)*1000/(tsList[-1]-tsList[0])
+		print('fps is:', fps)
+
 		axList=dic[Keys.kAx]
-		print('axList is:',axList)
+#		print('axList is:',axList)
 		ayList=dic[Keys.kAy]
 		azList=dic[Keys.kAz]
+		accList=[axList, ayList, azList]
 		
 		#计算世界坐标数据：
 		dataCnt=len(axList)
-		axWfList=[0]*dataCnt
-		ayWfList=[0]*dataCnt
-		azWfList=[0]*dataCnt
+		accWfList=[[0]*dataCnt for i in range(3)]
+		
+		#积分计算速度：
+		velList=[[0]*dataCnt for i in range(3)]
+		
+		#二重积分计算位移：displacement
+#		disList=[[0]*dataCnt]*3
+		disList=[[0]*dataCnt for i in range(3)]
 		
 		for i in range(dataCnt):
 			rotationVector = [
 							dic[Keys.kRx][i],
 							dic[Keys.kRy][i],
 							dic[Keys.kRz][i]
-						]
+							]
 			accVector=[
 				dic[Keys.kAx][i],
 				dic[Keys.kAy][i],
 				dic[Keys.kAz][i]
 				]
+			
 			rotationMatrix=Utils.getRotationMatrixFromVector(rotationVector)
-			wfList=Utils.multiplyMV3(rotationMatrix, accVector)
-			print('wfList is:',wfList)
-			axWfList[i]=wfList[0]
-			ayWfList[i]=wfList[1]
-			azWfList[i]=wfList[2]
-		
+			accWfVector=Utils.multiplyMV3(rotationMatrix, accVector)
+#			print('accWfVector is:',accWfVector)
+			for k in range(3):
+				accWfList[k][i]=accWfVector[k]
+#				print('accWfList[%d][%d] is:'%(k,i),accWfList[k][i])
+			accWfList[2][i] -= 	9.80665
+			
+			#n-1 项积分：		
+			if i>0:
+				#速度：
+				for k in range(3):
+					acc=accWfList[k][i-1]
+#					if k==2:
+#						acc-=9.80665
+						
+					velList[k][i]=velList[k][i-1]+acc*(tsList[i]-tsList[i-1])/1000
+				#位移：
+				for k in range(3):
+					disList[k][i]=disList[k][i-1]+velList[k][i-1]*(tsList[i]-tsList[i-1])/1000
+
 		print('type(self._canvas.ax) is:',type(self._canvas.ax))
 		
 		#重置 ax， 清除 legend、lines、坐标
@@ -212,27 +242,55 @@ class MyWindow(QMainWindow):
 		fname=curFileItem.text() if curFileItem else None
 		self._canvas.resetAxis(fname)
 		
+		ax=self._canvas.ax
+#		self._canvas.ax.annotate(r'FPS: %f'%fps, xy=(0,0), xycoords='data', xytext=(50,-50), textcoords='offset points', fontsize=16, arrowprops=dict(arrowstyle='->', connectionstyle='arc3, rad=.2'))
+		self._canvas.ax.text(.05, .05, '%.1f FPS'%fps, fontsize=16, transform=self._canvas.ax.transAxes) #transAxes 00左下，11右上角
+#		self._canvas.ax.plot([2], [1], 'o')
+	
 		#绘制三条曲线
 		if self.ui.actionAccBodyFrame.isChecked():
-			xl=self._canvas.ax.plot(axList, 'r', label='AxBF', linestyle='-')	#'o' 散点图
-			yl=self._canvas.ax.plot(ayList, 'g', label='AyBF')
-			zl=self._canvas.ax.plot(azList, 'b', label='AzBF')
-			self._canvas.ax.legend(loc='upper left')
+			xl=ax.plot(accList[0], 'r', label='AxBF', linestyle='-')	#'o' 散点图
+			yl=ax.plot(accList[1], 'g', label='AyBF')
+			zl=ax.plot(accList[2], 'b', label='AzBF')
+#			print('self._canvas.ax.legend is:',self._canvas.ax.legend)	#bound method
 
-#		xl,=self._canvas.ax.plot(axList, 'r')	#'o' 散点图
-#		yl,=self._canvas.ax.plot(ayList, 'g')
-#		zl,=self._canvas.ax.plot(azList, 'b')
-#		axis=self._canvas.fig.gca()
+#		xl,=ax.plot(axList, 'r')	#'o' 散点图
+#		yl,=ax.plot(ayList, 'g')
+#		zl,=ax.plot(azList, 'b')
+#		axis=fig.gca()
 #		print(xl, yl, zl, )
 		
 		#acc 世界坐标曲线
 		if self.ui.actionAccWorldFrame.isChecked():
-			self._canvas.ax.plot(axWfList, 'r', label='AxWF', linewidth=2, linestyle='--')
-			self._canvas.ax.plot(ayWfList, 'g', label='AyWF', linewidth=2, linestyle='--')
-			self._canvas.ax.plot(azWfList, 'b', label='AzWF', linewidth=2, linestyle='--')
-			self._canvas.ax.legend(loc='upper left')
+			ax.plot(accWfList[0], 'r', label='AxWF', linewidth=2, linestyle='--')
+			ax.plot(accWfList[1], 'g', label='AyWF', linewidth=2, linestyle='--')
+			ax.plot(accWfList[2], 'b', label='AzWF', linewidth=2, linestyle='--')
 
-		
+		#速度曲线
+		if self.ui.actionVelocity.isChecked():
+			ax.plot(velList[0], 'r', label='Vx', linewidth=2)
+			ax.plot(velList[1], 'g', label='Vy', linewidth=2)
+			ax.plot(velList[2], 'b', label='Vz', linewidth=2)
+			
+		#位移曲线
+		if self.ui.actionDisplacement.isChecked():
+			ax.plot(disList[0], disList[1], 'purple', label='displacement', linewidth=1)
+			ax.plot(disList[0], disList[1], 'bo')
+			ax.plot(disList[0][0], disList[1][0], 'bo')
+			ax.plot(disList[0][-1], disList[1][-1], 'bo')
+			#print('[disList[0][-1]], [disList[1][-1]] is:',[disList[0][-1]], [disList[1][-1]])
+#			ax.annotate('startPoint', xy=(disList[0][0], disList[1][0]), xycoords='data', xytext=(50,-50), textcoords='offset points', fontsize=16, arrowprops=dict(arrowstyle='->', connectionstyle='arc3, rad=.2'))
+			for k, v in {0:'startPoint', -1:'endPoint'}.items():
+				ax.annotate(v, xy=(disList[0][k], disList[1][k]), xycoords='data', xytext=(20,-20), textcoords='offset points', 
+					bbox = dict(boxstyle = 'round,pad=0.5', fc = 'yellow', alpha = 0.5),
+					fontsize=12, arrowprops=dict(arrowstyle='->', connectionstyle='arc3, rad=.2'))
+			
+			
+		#是否添加图例
+		if self.ui.actionLegend.isChecked():
+#			ax.legend(loc='best')
+			ax.legend()
+			
 		#绘制鼠标选定的区域
 		rectLR=item.areaSelected
 		if rectLR:
@@ -400,6 +458,18 @@ class MyWindow(QMainWindow):
 		print("on_actionAccWorldFrame_triggered, checked=", checked)
 		self.onCurrentNodeItemChanged(self.ui.listWidgetNode.currentItem())
 		
+	@QtCore.pyqtSlot(bool)
+	def on_actionVelocity_triggered(self, checked):
+		self.onCurrentNodeItemChanged(self.ui.listWidgetNode.currentItem())
+	
+	@QtCore.pyqtSlot(bool)
+	def on_actionDisplacement_triggered(self, checked):
+		self.onCurrentNodeItemChanged(self.ui.listWidgetNode.currentItem())
+	
+	@QtCore.pyqtSlot(bool)
+	def on_actionLegend_triggered(self, checked):
+		self._canvas.ax.legend().set_visible(checked)
+		self._canvas.draw()
 
 		
 	#解析xml， node 窗口填 item	

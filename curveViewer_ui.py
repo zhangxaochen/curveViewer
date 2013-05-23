@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'curveViewer.ui'
 #
-# Created: Tue May 21 21:37:34 2013
+# Created: Thu May 23 00:30:31 2013
 #      by: PyQt4 UI code generator 4.10
 #
 # WARNING! All changes made in this file will be lost!
@@ -113,11 +113,25 @@ class Ui_MainWindow(object):
         self.actionAccWorldFrame = QtGui.QAction(MainWindow)
         self.actionAccWorldFrame.setCheckable(True)
         self.actionAccWorldFrame.setObjectName(_fromUtf8("actionAccWorldFrame"))
+        self.actionVelocity = QtGui.QAction(MainWindow)
+        self.actionVelocity.setCheckable(True)
+        self.actionVelocity.setObjectName(_fromUtf8("actionVelocity"))
+        self.actionDisplacement = QtGui.QAction(MainWindow)
+        self.actionDisplacement.setCheckable(True)
+        self.actionDisplacement.setObjectName(_fromUtf8("actionDisplacement"))
+        self.actionLegend = QtGui.QAction(MainWindow)
+        self.actionLegend.setCheckable(True)
+        self.actionLegend.setChecked(True)
+        self.actionLegend.setObjectName(_fromUtf8("actionLegend"))
         self.menuFile.addAction(self.actionOpen)
         self.menuFile.addAction(self.actionSave)
         self.menuFile.addAction(self.actionExit)
         self.menuView.addAction(self.actionAccBodyFrame)
         self.menuView.addAction(self.actionAccWorldFrame)
+        self.menuView.addAction(self.actionVelocity)
+        self.menuView.addAction(self.actionDisplacement)
+        self.menuView.addSeparator()
+        self.menuView.addAction(self.actionLegend)
         self.menubar.addAction(self.menuFile.menuAction())
         self.menubar.addAction(self.menuView.menuAction())
 
@@ -138,9 +152,15 @@ class Ui_MainWindow(object):
         self.actionExit.setShortcut(_translate("MainWindow", "Ctrl+Q", None))
         self.actionSave.setText(_translate("MainWindow", "(&S)ave", None))
         self.actionSave.setShortcut(_translate("MainWindow", "Ctrl+S", None))
-        self.actionAccBodyFrame.setText(_translate("MainWindow", "AccBodyFrame", None))
-        self.actionAccBodyFrame.setShortcut(_translate("MainWindow", "Alt+A, B", None))
-        self.actionAccWorldFrame.setText(_translate("MainWindow", "AccWorldFrame", None))
-        self.actionAccWorldFrame.setShortcut(_translate("MainWindow", "Alt+A, W", None))
+        self.actionAccBodyFrame.setText(_translate("MainWindow", "Acc(&B)odyFrame", None))
+        self.actionAccBodyFrame.setShortcut(_translate("MainWindow", "Ctrl+B", None))
+        self.actionAccWorldFrame.setText(_translate("MainWindow", "Acc(&W)orldFrame", None))
+        self.actionAccWorldFrame.setShortcut(_translate("MainWindow", "Ctrl+W", None))
+        self.actionVelocity.setText(_translate("MainWindow", "(&V)elocity", None))
+        self.actionVelocity.setShortcut(_translate("MainWindow", "Ctrl+V", None))
+        self.actionDisplacement.setText(_translate("MainWindow", "(&D)isplacement", None))
+        self.actionDisplacement.setShortcut(_translate("MainWindow", "Ctrl+D", None))
+        self.actionLegend.setText(_translate("MainWindow", "(&L)egend", None))
+        self.actionLegend.setShortcut(_translate("MainWindow", "Ctrl+L", None))
 
 from matplotlibwidget import MatplotlibWidget

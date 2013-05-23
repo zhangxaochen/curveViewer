@@ -131,6 +131,10 @@
     </property>
     <addaction name="actionAccBodyFrame"/>
     <addaction name="actionAccWorldFrame"/>
+    <addaction name="actionVelocity"/>
+    <addaction name="actionDisplacement"/>
+    <addaction name="separator"/>
+    <addaction name="actionLegend"/>
    </widget>
    <addaction name="menuFile"/>
    <addaction name="menuView"/>
@@ -174,10 +178,10 @@
     <bool>true</bool>
    </property>
    <property name="text">
-    <string>AccBodyFrame</string>
+    <string>Acc(&amp;B)odyFrame</string>
    </property>
    <property name="shortcut">
-    <string>Alt+A, B</string>
+    <string>Ctrl+B</string>
    </property>
   </action>
   <action name="actionAccWorldFrame">
@@ -185,10 +189,46 @@
     <bool>true</bool>
    </property>
    <property name="text">
-    <string>AccWorldFrame</string>
+    <string>Acc(&amp;W)orldFrame</string>
    </property>
    <property name="shortcut">
-    <string>Alt+A, W</string>
+    <string>Ctrl+W</string>
+   </property>
+  </action>
+  <action name="actionVelocity">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>(&amp;V)elocity</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+V</string>
+   </property>
+  </action>
+  <action name="actionDisplacement">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>(&amp;D)isplacement</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+D</string>
+   </property>
+  </action>
+  <action name="actionLegend">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>(&amp;L)egend</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+L</string>
    </property>
   </action>
  </widget>
