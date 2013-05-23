@@ -18,8 +18,7 @@ from lxml import etree
 from xml.dom import minidom
 import traceback
 from utils import Utils
-from matplotlib.pyplot import annotate
-from distutils.command.check import check
+#from matplotlib.pyplot import annotate
 import math
 #from xml.etree.ElementTree import ElementTree
 
@@ -278,14 +277,21 @@ class MyWindow(QMainWindow):
 			
 		#位移曲线
 		if self.ui.actionDisplacement.isChecked():
-			ax.plot(disList[0], disList[1], 'purple', label='displacement', linewidth=1)
-			ax.plot(disList[0], disList[1], 'bo')
-			ax.plot(disList[0][0], disList[1][0], 'bo')
-			ax.plot(disList[0][-1], disList[1][-1], 'bo')
+#			if hasattr(self, 'axDis'):
+			axd=self.axDis
+			#重置 axDis
+			axd.clear()
+			axd.set_xlabel('-->EAST')
+			axd.set_ylabel('-->NORTH')
+			
+			axd.plot(disList[0], disList[1], 'purple', label='displacement', linewidth=1)
+			axd.plot(disList[0], disList[1], 'bo')
+			axd.plot(disList[0][0], disList[1][0], 'bo')
+			axd.plot(disList[0][-1], disList[1][-1], 'bo')
 			#print('[disList[0][-1]], [disList[1][-1]] is:',[disList[0][-1]], [disList[1][-1]])
-#			ax.annotate('startPoint', xy=(disList[0][0], disList[1][0]), xycoords='data', xytext=(50,-50), textcoords='offset points', fontsize=16, arrowprops=dict(arrowstyle='->', connectionstyle='arc3, rad=.2'))
+#			axd.annotate('startPoint', xy=(disList[0][0], disList[1][0]), xycoords='data', xytext=(50,-50), textcoords='offset points', fontsize=16, arrowprops=dict(arrowstyle='->', connectionstyle='arc3, rad=.2'))
 			for k, v in {0:'startPoint', -1:'endPoint'}.items():
-				ax.annotate(v, xy=(disList[0][k], disList[1][k]), xycoords='data', xytext=(20,-20), textcoords='offset points', 
+				axd.annotate(v, xy=(disList[0][k], disList[1][k]), xycoords='data', xytext=(20,-20), textcoords='offset points', 
 					bbox = dict(boxstyle = 'round,pad=0.5', fc = 'yellow', alpha = 0.5),
 					fontsize=12, arrowprops=dict(arrowstyle='->', connectionstyle='arc3, rad=.2'))
 			
@@ -293,7 +299,10 @@ class MyWindow(QMainWindow):
 		#是否添加图例
 		if self.ui.actionLegend.isChecked():
 #			ax.legend(loc='best')
-			ax.legend()
+#			ax.legend()
+			self._canvas.ax.legend()
+			if hasattr(self, 'axDis'):
+				self.axDis.legend()
 			
 		#绘制鼠标选定的区域
 		rectLR=item.areaSelected
@@ -468,11 +477,24 @@ class MyWindow(QMainWindow):
 	
 	@QtCore.pyqtSlot(bool)
 	def on_actionDisplacement_triggered(self, checked):
+		self._canvas.fig.delaxes(self._canvas.ax)
+		if checked:
+			self._canvas.ax=self._canvas.fig.add_subplot(211)
+			#ax for displacement
+			self.axDis=self._canvas.fig.add_subplot(234)
+		else:
+			self._canvas.fig.delaxes(self.axDis)
+			self._canvas.ax=self._canvas.fig.add_subplot(111)
+			
+			
 		self.onCurrentNodeItemChanged(self.ui.listWidgetNode.currentItem())
+#		self.ax=self.fig.add_subplot(111)
 	
 	@QtCore.pyqtSlot(bool)
 	def on_actionLegend_triggered(self, checked):
 		self._canvas.ax.legend().set_visible(checked)
+		if hasattr(self, 'axDis'):
+			self.axDis.legend().set_visible(checked)
 		self._canvas.draw()
 
 		

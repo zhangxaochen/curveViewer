@@ -7,7 +7,6 @@ Created on Apr 11, 2013
 from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg
 from matplotlib.figure import Figure
 from PyQt4 import QtGui, QtCore
-from symbol import if_stmt
 
 class MplCanvas(FigureCanvasQTAgg):
 	areaSelected=QtCore.pyqtSignal(tuple)
