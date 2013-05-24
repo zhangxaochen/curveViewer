@@ -233,11 +233,17 @@ class MyWindow(QMainWindow):
 				#速度：
 				for k in range(3):
 					acc=accWfList[k][i-1]
-					velList[k][i]=velList[k][i-1]+acc*(tsList[i]-tsList[i-1])/1000
+					#实验室的N7 似乎有第一帧时间戳的 bug
+					dt=tsList[i]-tsList[i-1]
+					dt=tsList[-1]-tsList[-2] if dt>1000 else dt
+					velList[k][i]=velList[k][i-1]+acc*(dt)/1000
+					#velList[k][i]=velList[k][i-1]+acc*(tsList[i]-tsList[i-1])/1000
 					
 				#位移：
 				for k in range(3):
-					disList[k][i]=disList[k][i-1]+velList[k][i-1]*(tsList[i]-tsList[i-1])/1000
+					dt=tsList[i]-tsList[i-1]
+					dt=tsList[-1]-tsList[-2] if dt>1000 else dt
+					disList[k][i]=disList[k][i-1]+velList[k][i-1]*(dt)/1000
 
 		print('type(self._canvas.ax) is:',type(self._canvas.ax))
 		
