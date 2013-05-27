@@ -4,6 +4,11 @@ Created on Apr 11, 2013
 
 @author: zhangxaochen
 '''
+
+from matplotlib import rcParams
+#为了anaconda兼容性。 贱人
+rcParams['backend.qt4'] = 'PyQt4'
+
 from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg
 from matplotlib.figure import Figure
 from PyQt4 import QtGui, QtCore
@@ -127,6 +132,8 @@ class MatplotlibWidget(QtGui.QWidget):
 		super(MatplotlibWidget, self).__init__(parent)
 		self.canvas=MplCanvas()
 		self.vbl=QtGui.QVBoxLayout()
+
+
 		self.vbl.addWidget(self.canvas)
 		self.setLayout(self.vbl)
 		

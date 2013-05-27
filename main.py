@@ -384,7 +384,10 @@ class MyWindow(QMainWindow):
 #													parent=self, caption='', directory=os.path.abspath(''), 
 													parent=self, caption='', directory=os.path.curdir, 
 													options=QFileDialog.ShowDirsOnly)
-#		print('self.dirName', self.dirName)
+
+		#str() 包裹下， 为了兼容性：
+		self.dirName=str(self.dirName)
+		print('self.dirName', self.dirName)
 		if(self.dirName is ''):
 			return
 		self.ui.labelDirOpened.setText(self.dirName)
@@ -547,7 +550,9 @@ class MyWindow(QMainWindow):
 				nodeItem.setBackgroundColor(self.nodeItemMarkBg)
 			self.ui.listWidgetNode.addItem(nodeItem)
 		
-		self.xmlDataList.clear()
+		#py2 没有 clear 函数， 兼容性：
+		# self.xmlDataList.clear()
+		del self.xmlDataList[:]
 		
 
 def main():
