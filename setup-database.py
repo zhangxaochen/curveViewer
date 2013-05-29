@@ -54,8 +54,11 @@ def main():
 	for line in configFile.readlines():
 		fileAndFrame=line.split()
 		# print(fileAndFrame)
+		startEndList=list(map(int, fileAndFrame[1:]))
 		if not fileFramesInfo.get(fileAndFrame[0]):
-			fileFramesInfo[fileAndFrame[0]]=list(map(int, fileAndFrame[1:]))
+			fileFramesInfo[fileAndFrame[0]]=[startEndList]	#注意： 二维数组
+		else:
+			fileFramesInfo[fileAndFrame[0]].append(startEndList)
 	
 	print('+++++++++fileFramesInfo is:', fileFramesInfo)
 	# return
@@ -76,7 +79,7 @@ def main():
 			if not fileFramesInfo.get(basename):
 				print('~~~~~~~break, basename is:', basename)
 				break
-			startFrame, endFrame=fileFramesInfo[basename]
+			startFrame, endFrame=fileFramesInfo[basename][nodeID]
 			
 			# nodeXml 要转换 bytes --> string
 			# print('======nodeXml:',nodeXml)
