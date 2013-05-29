@@ -275,6 +275,8 @@ class MyWindow(QMainWindow):
 			ax.plot(accWfList[0], 'r', label='AxWF', linewidth=2, linestyle='--')
 			ax.plot(accWfList[1], 'g', label='AyWF', linewidth=2, linestyle='--')
 			ax.plot(accWfList[2], 'b', label='AzWF', linewidth=2, linestyle='--')
+			axyWfList=[math.sqrt(accWfList[0][i]**2+accWfList[1][i]**2) for i in range(dataCnt)]
+			ax.plot(axyWfList, 'magenta', label='AxyWF', linewidth=2, linestyle='--')
 
 		#速度曲线
 		if self.ui.actionVelocity.isChecked():
