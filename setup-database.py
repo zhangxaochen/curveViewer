@@ -1,5 +1,12 @@
 #coding=utf-8
 
+'''
+è¾“å…¥åŒ…å«é©¾é©¶æ•°æ® xml çš„ folder è·¯å¾„ï¼Œ
+å°†æ•°æ®å¯¼å…¥æ•°æ®åº“ dbo.drivingData
+
+Usage: python setup-database folderPath
+'''
+
 import os, sys
 from lxml import etree
 import pyodbc
@@ -13,8 +20,8 @@ Usage: python setup-database folderPath
 opID=[11,		#Duan Liang
 			12	#Liu Bingzhen
 			]
-carID=[1,		#ÃÉµÏÅ·
-			2,		#¸£¿ËË¹
+carID=[1,		#è’™è¿ªæ¬§
+			2,		#ç¦å…‹æ–¯
 			]
 activityID=dict(
 			accelerate=28,
@@ -56,7 +63,7 @@ def main():
 		# print(fileAndFrame)
 		startEndList=list(map(int, fileAndFrame[1:]))
 		if not fileFramesInfo.get(fileAndFrame[0]):
-			fileFramesInfo[fileAndFrame[0]]=[startEndList]	#×¢Òâ£º ¶şÎ¬Êı×é
+			fileFramesInfo[fileAndFrame[0]]=[startEndList]	#æ³¨æ„ï¼š äºŒç»´æ•°ç»„
 		else:
 			fileFramesInfo[fileAndFrame[0]].append(startEndList)
 	
@@ -66,7 +73,7 @@ def main():
 	conn=pyodbc.connect('driver={sql server}; server=10.12.34.98; database=HuaweiProjectSensorDB; uid=zc; pwd=Capg11207')
 	cur=conn.cursor()
 	
-	#¶ÔÃ¿¸öÎÄ¼ş£º
+	#å¯¹æ¯ä¸ªæ–‡ä»¶ï¼š
 	for fname in fileList:
 		basename=os.path.basename(fname)
 		basename=os.path.splitext(basename)[0]
@@ -75,20 +82,20 @@ def main():
 		actId=activityID.get(driveInfo[3])
 		
 		for nodeID, totalFrames, nodeXml in parseXmlFile(fname):
-			#Èç¹û config.txt ÀïÃ»ÓĞÄ³ fileName£¬ ËµÃ÷Ã»·Ö¸îËü£¬ ¿ÉÄÜËüÊÇ»µÎÄ¼ş£¬ Ìø¹ıËü£º
+			#å¦‚æœ config.txt é‡Œæ²¡æœ‰æŸ fileNameï¼Œ è¯´æ˜æ²¡åˆ†å‰²å®ƒï¼Œ å¯èƒ½å®ƒæ˜¯åæ–‡ä»¶ï¼Œ è·³è¿‡å®ƒï¼š
 			if not fileFramesInfo.get(basename):
 				print('~~~~~~~break, basename is:', basename)
 				break
 			startFrame, endFrame=fileFramesInfo[basename][nodeID]
 			
-			# nodeXml Òª×ª»» bytes --> string
+			# nodeXml è¦è½¬æ¢ bytes --> string
 			# print('======nodeXml:',nodeXml)
 			# nodeXml="<node><data/></node>"
 			# cur.execute("insert into dba.pyodbcTest(data) values('%s')"%nodeXml)
 			# cur.commit()
 			# return
 			
-			#¿´¿´±äÁ¿ÀàĞÍÊÇ·ñ¶¼¶Ô£º
+			#çœ‹çœ‹å˜é‡ç±»å‹æ˜¯å¦éƒ½å¯¹ï¼š
 			# print([nodeXml, actId, opId, carId, startFrame, endFrame, totalFrames, fname, nodeID])
 			
 			cur.execute("""insert into dbo.drivingData
@@ -109,14 +116,14 @@ def parseXmlFile(fname):
 	eRoot = tree.getroot()
 	#nodes NODE
 	eNodes = eRoot[0]
-	#¶ÔÃ¿¸ö node£º
+	#å¯¹æ¯ä¸ª nodeï¼š
 	for nodeId, eNode in enumerate(eNodes):
 		# print('==========', idx, eNode, etree.tostring(eNode))
 		totalFrames=eNode.get('frames')
 		
 		yield nodeId, int(totalFrames), bytes.decode(etree.tostring(eNode))
 		
-		#¶ÔÃ¿¸ö Data ½Úµã£º
+		#å¯¹æ¯ä¸ª Data èŠ‚ç‚¹ï¼š
 #		for eData in eNode:
 #			pass
 			
@@ -126,7 +133,7 @@ def parseXmlFile(fname):
 if __name__=='__main__':
 	main()
 	
-	#µ¥Ôª²âÊÔ£º
+	#å•å…ƒæµ‹è¯•ï¼š
 #	fname=r'E:\workspace\PyCeshi\curveViewer\ttt.xml'
 #	for i in parseXmlFile(fname):
 #		print(i)

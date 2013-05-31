@@ -431,8 +431,9 @@ class MyWindow(QMainWindow):
 				self.ui.statusbar.showMessage(msg)
 				return
 
-		#ljj
-		configFile=open(pathTo+os.path.sep+'config.txt', 'w')
+		#ljj	要求：
+		# configFile=open(pathTo+os.path.sep+'config.txt', 'w')
+		configFile=open('.'+os.path.sep+'config.txt', 'w')
 		
 		psr = etree.XMLParser(remove_blank_text=True)
 		#对每个 file
