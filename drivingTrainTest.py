@@ -4,14 +4,35 @@
 使用 GMM 训练并预测驾驶数据
 '''
 
-import os, sys, glob
+#import os, sys, glob
 import numpy as np
+import pylab as pl
+import matplotlib as mpl
+
 
 from sklearn.cross_validation import StratifiedKFold
 from sklearn.mixture import GMM
 
+colors='rg'
+
+def make_ellipses(gmm, ax):
+	for n, color in enumerate(colors):
+		v, w = np.linalg.eigh(gmm._get_covars()[n][:2, :2])
+		u = w[0] / np.linalg.norm(w[0])
+		angle = np.arctan2(u[1], u[0])
+		angle = 180 * angle / np.pi  # convert to degrees
+		v *= 9
+		ell = mpl.patches.Ellipse(gmm.means_[n, :2], v[0], v[1],
+								  180 + angle, color=color)
+		ell.set_clip_box(ax.bbox)
+		ell.set_alpha(0.5)
+		ax.add_artist(ell)
+
+
 class Driving:
 	label=np.array([])
+	labelName=np.array([])
+	
 	feature=np.array([])
 	
 	#accelerate, decelerate, turn:
@@ -37,6 +58,7 @@ class Driving:
 		
 		res=Driving()
 		res.label=self.label[npArray]
+		res.labelName=self.labelName
 		res.feature=self.feature[npArray]
 		res.actType=self.actType[npArray]
 		return res
@@ -66,10 +88,12 @@ def loadFeatures():
 		elif name.startswith('l'):
 			label.append(1)
 		feature.append(v)
+		#acc, dec, turn: 
 		actType.append(info[3])
 	
 	driving=Driving()
 	driving.label=np.array(label)			#label 即 person 编号
+	driving.labelName=np.array(['Duan', 'Liu'])
 	driving.feature = np.array(feature)
 	driving.actType=np.array(actType)
 	
@@ -90,10 +114,16 @@ def trainAndPredWithCovars(data, covars):
 					covariance_type=covar_type, init_params='wc', n_iter=20))
 					#for covar_type in ['spherical', 'diag', 'tied', 'full'])
 					for covar_type in covars)
+	n_classifiers=len(classifiers)
+	pl.figure(figsize=[3*n_classifiers/2, 6])
+	pl.subplots_adjust(bottom=.01, top=.95, hspace=.15, wspace=.05, left=.01, right=.99)
 	
+	#4 classifiers:
 	for idx, (name, classifier) in enumerate(sorted(classifiers.items())):
-#		train_index, test_index=next(iter(skf))
 #		print('======================================')
+
+		h=pl.subplot(2, n_classifiers/2, idx+1)
+		
 		train_res=[]
 		test_res=[]
 		for train_index, test_index in skf:
@@ -105,6 +135,17 @@ def trainAndPredWithCovars(data, covars):
 			#2D, [2*115]:
 			classifier.means_=np.array([x_train[y_train==i].mean(axis=0) for i in range(n_classes)])
 			classifier.fit(x_train)
+			
+			
+			#画图：
+			for n, color in enumerate(colors):
+				testerData=data.feature[data.label==n]
+				pl.scatter(testerData[:, 0], testerData[:, 1], 33, color=color, label=data.labelName[n])
+				
+			for n, color in enumerate(colors):
+				testerData=x_test[y_test==n]
+				pl.plot(testerData[:,0], testerData[:, 1], 'x', color=color)
+				
 			
 			train_pred=classifier.predict(x_train)
 			train_accuracy=np.mean(train_pred==y_train)*100
@@ -118,6 +159,17 @@ def trainAndPredWithCovars(data, covars):
 		train_meanAccuracy=np.array(train_res).mean()
 		test_meanAccuracy=np.array(test_res).mean()
 		print('train_meanAccuracy, test_meanAccuracy\t\t +%s\t\t'%name, train_meanAccuracy, test_meanAccuracy)
+		
+#		make_ellipses(classifier, h)
+		pl.text(.05, .9, 'Train mean accuracy: %.1f'%train_meanAccuracy, transform=h.transAxes)
+		pl.text(.05, .8, 'Test mean accuracy: %.1f'%test_meanAccuracy, transform=h.transAxes)
+		
+		pl.title(name)
+		pl.xticks(())
+		pl.yticks(())
+
+	pl.gcf().canvas.set_window_title(data.actType[0])
+	pl.show()
 
 
 def main():
@@ -128,22 +180,17 @@ def main():
 #	print(dri.actType)
 	
 	covars=['spherical', 'diag', 'tied', 'full']
-	trainAndPredWithCovars(data=dri, covars=covars)
 
 	actTypes=np.unique(dri.actType)
-#	driAcc=
-#	for label, feature, type in dri:
-#		print('label, feature, type:', label, feature, type)
-#		if type is actTypes[0]:
-	
-	#目前 3种：
+
+	#合着训练，虽然结果不太坏，但是这么做不对：
+#	trainAndPredWithCovars(data=dri, covars=covars)
+	#目前 3种动作：
 	for i in range(actTypes.size):
 		print('============================'+actTypes[i])
 		driSubType=dri[dri.actType==actTypes[i]]
 #		print('driSubType:', driSubType.label, driSubType.feature, driSubType.actType)
 		trainAndPredWithCovars(driSubType, covars)
-
-
 
 if __name__=='__main__':
 	main()
