@@ -64,7 +64,8 @@ class Driving:
 		return res
 	
 def loadFeatures():
-	configFname='D:/Documents/Desktop/huaweiproj-data-20130517/afterSplit/config_features.txt'
+#	configFname='D:/Documents/Desktop/huaweiproj-data-20130517/afterSplit/config_features.txt'
+	configFname='./driving_features.txt'
 	configFile=open(configFname)
 	featureDic={}
 	for idx, line in enumerate(configFile.readlines()):
@@ -99,7 +100,7 @@ def loadFeatures():
 	
 	return driving
 
-def trainAndPredWithCovars(data, covars):
+def trainAndPredWithCovars(data, covars, xylim):
 	assert isinstance(data, Driving)
 	assert isinstance(covars, list)
 	
@@ -152,7 +153,7 @@ def trainAndPredWithCovars(data, covars):
 		test_meanAccuracy=np.array(test_res).mean()
 		print('train_meanAccuracy, test_meanAccuracy\t\t +%s\t\t'%name, train_meanAccuracy, test_meanAccuracy)
 		
-#		make_ellipses(classifier, h)
+		make_ellipses(classifier, h)
 		#画图：
 		for n, color in enumerate(colors):
 			testerData=data.feature[data.label==n]
@@ -166,8 +167,11 @@ def trainAndPredWithCovars(data, covars):
 		pl.text(.05, .8, 'Test mean accuracy: %.1f'%test_meanAccuracy, transform=h.transAxes)
 		
 		pl.title(name)
-		pl.xticks(())
-		pl.yticks(())
+		pl.xlim(xylim[:2])
+		pl.ylim(xylim[2:])
+#		pl.xticks(())
+#		pl.yticks(())
+		
 
 	pl.gcf().canvas.set_window_title(data.actType[0])
 	pl.show()
@@ -186,12 +190,18 @@ def main():
 
 	#合着训练，虽然结果不太坏，但是这么做不对：
 #	trainAndPredWithCovars(data=dri, covars=covars)
+
+	xylims=[
+		[-5, 5, -15, 5],
+		[-3, 1, -10, -2],
+		[-3, 3, -12, 5],
+		]
 	#目前 3种动作：
 	for i in range(actTypes.size):
 		print('============================'+actTypes[i])
 		driSubType=dri[dri.actType==actTypes[i]]
 #		print('driSubType:', driSubType.label, driSubType.feature, driSubType.actType)
-		trainAndPredWithCovars(driSubType, covars)
+		trainAndPredWithCovars(driSubType, covars, xylim=xylims[i])
 
 if __name__=='__main__':
 	main()
