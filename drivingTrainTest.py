@@ -137,14 +137,6 @@ def trainAndPredWithCovars(data, covars):
 			classifier.fit(x_train)
 			
 			
-			#画图：
-			for n, color in enumerate(colors):
-				testerData=data.feature[data.label==n]
-				pl.scatter(testerData[:, 0], testerData[:, 1], 33, color=color, label=data.labelName[n])
-				
-			for n, color in enumerate(colors):
-				testerData=x_test[y_test==n]
-				pl.plot(testerData[:,0], testerData[:, 1], 'x', color=color)
 				
 			
 			train_pred=classifier.predict(x_train)
@@ -161,6 +153,15 @@ def trainAndPredWithCovars(data, covars):
 		print('train_meanAccuracy, test_meanAccuracy\t\t +%s\t\t'%name, train_meanAccuracy, test_meanAccuracy)
 		
 #		make_ellipses(classifier, h)
+		#画图：
+		for n, color in enumerate(colors):
+			testerData=data.feature[data.label==n]
+			pl.scatter(testerData[:, 0], testerData[:, 1], s=10, color=color, label=data.labelName[n])
+			
+		for n, color in enumerate('mb'):
+			testerData=x_test[y_test==n]
+			pl.plot(testerData[:,0], testerData[:, 1], 'x', color=color)
+
 		pl.text(.05, .9, 'Train mean accuracy: %.1f'%train_meanAccuracy, transform=h.transAxes)
 		pl.text(.05, .8, 'Test mean accuracy: %.1f'%test_meanAccuracy, transform=h.transAxes)
 		
