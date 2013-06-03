@@ -15,6 +15,8 @@ from sklearn.mixture import GMM
 
 colors='rg'
 
+featuresCnt=115
+
 def make_ellipses(gmm, ax):
 	for n, color in enumerate(colors):
 		v, w = np.linalg.eigh(gmm._get_covars()[n][:2, :2])
@@ -74,7 +76,8 @@ def loadFeatures():
 			tag=line.split('\n')[0]
 		else:
 			if not featureDic.get(tag):
-				featureDic[tag] = list(map(float, line.split()))
+				# featureDic[tag] = list(map(float, line.split()))[:featuresCnt if 'featuresCnt' in dir() else None]
+				featureDic[tag] = list(map(float, line.split()))[:featuresCnt]
 	#print('=============featureDic:', featureDic)
 	
 	label=[]
@@ -96,11 +99,13 @@ def loadFeatures():
 	driving.label=np.array(label)			#label 即 person 编号
 	driving.labelName=np.array(['Duan', 'Liu'])
 	driving.feature = np.array(feature)
+	# print('driving.feature.shape:', driving.feature.shape)
 	driving.actType=np.array(actType)
+	
 	
 	return driving
 
-def trainAndPredWithCovars(data, covars, xylim):
+def trainAndPredWithCovars(figIdx, data, covars, xylim):
 	assert isinstance(data, Driving)
 	assert isinstance(covars, list)
 	
@@ -116,45 +121,68 @@ def trainAndPredWithCovars(data, covars, xylim):
 					#for covar_type in ['spherical', 'diag', 'tied', 'full'])
 					for covar_type in covars)
 	n_classifiers=len(classifiers)
-	pl.figure(figsize=[3*n_classifiers/2, 6])
+	pl.figure(figIdx, figsize=[3*n_classifiers/2, 6])
 	pl.subplots_adjust(bottom=.01, top=.95, hspace=.15, wspace=.05, left=.01, right=.99)
+	
+	flag=111
+	pl.figure(flag+figIdx)
+	pl.subplots_adjust(bottom=.01, top=.95, hspace=.4, wspace=.05, left=.06, right=.99)
+
 	
 	#4 classifiers:
 	for idx, (name, classifier) in enumerate(sorted(classifiers.items())):
-#		print('======================================')
-
-		h=pl.subplot(2, n_classifiers/2, idx+1)
+		# print('======================================')
 		
-		train_res=[]
-		test_res=[]
-		for train_index, test_index in skf:
-			x_train=data.feature[train_index]
-			y_train=data.label[train_index]
-			x_test=data.feature[test_index]
-			y_test=data.label[test_index]
+		train_accuList=[]
+		test_accuList=[]
+		xlimLeft=5
+		for num in range(xlimLeft, featuresCnt):
+			# print('num:', num)
+			train_res=[]
+			test_res=[]
+			for train_index, test_index in skf:
+				x_train=data.feature[train_index][:, :num]
+				y_train=data.label[train_index]
+				x_test=data.feature[test_index][:, :num]
+				y_test=data.label[test_index]
 
-			#2D, [2*115]:
-			classifier.means_=np.array([x_train[y_train==i].mean(axis=0) for i in range(n_classes)])
-			classifier.fit(x_train)
-			
-			
+				#2D, [2*115]:
+				classifier.means_=np.array([x_train[y_train==i].mean(axis=0) for i in range(n_classes)])
+				classifier.fit(x_train)
 				
-			
-			train_pred=classifier.predict(x_train)
-			train_accuracy=np.mean(train_pred==y_train)*100
-			train_res.append(train_accuracy)
-#			print('---------------train_accuracy +%s:'%name, train_accuracy)
+				train_pred=classifier.predict(x_train)
+				train_accuracy=np.mean(train_pred==y_train)*100
+				train_res.append(train_accuracy)
+				# print('---------------train_accuracy +%s:'%name, train_accuracy)
 
-			test_pred=classifier.predict(x_test)
-			test_accuracy=np.mean(test_pred==y_test)*100
-			test_res.append(test_accuracy)
-#			print('------------test_accuracy:', test_accuracy)
-		train_meanAccuracy=np.array(train_res).mean()
-		test_meanAccuracy=np.array(test_res).mean()
-		print('train_meanAccuracy, test_meanAccuracy\t\t +%s\t\t'%name, train_meanAccuracy, test_meanAccuracy)
+				test_pred=classifier.predict(x_test)
+				test_accuracy=np.mean(test_pred==y_test)*100
+				test_res.append(test_accuracy)
+				# print('------------test_accuracy:', test_accuracy)
+			train_meanAccuracy=np.array(train_res).mean()
+			test_meanAccuracy=np.array(test_res).mean()
+			# print('train_meanAccuracy, test_meanAccuracy\t\t +%s\t\t\t%.1f %.1f'%(name, train_meanAccuracy, test_meanAccuracy))
+			train_accuList.append(train_meanAccuracy)
+			test_accuList.append(test_meanAccuracy)
+		# print('train_accuList', train_accuList)
+		# print('test_accuList', test_accuList)
 		
+		#根据特征数画精度曲线：
+		pl.figure(flag+figIdx)
+		h=pl.subplot(4,1, idx+1)
+		pl.title(name)
+		pl.gca().set_ylabel('Accuracy(%)')
+		pl.xlim(xlimLeft, featuresCnt)
+		pl.ylim(0, 110)
+		pl.plot(train_accuList, label='trainMeanAccuracy')
+		pl.plot(test_accuList, label='testMeanAccuracy')
+		pl.gcf().canvas.set_window_title(data.actType[0]+'_featureNum')
+
+		
+		#散点图：
+		pl.figure(figIdx)
+		h=pl.subplot(2, n_classifiers/2, idx+1)
 		make_ellipses(classifier, h)
-		#画图：
 		for n, color in enumerate(colors):
 			testerData=data.feature[data.label==n]
 			pl.scatter(testerData[:, 0], testerData[:, 1], s=10, color=color, label=data.labelName[n])
@@ -169,12 +197,18 @@ def trainAndPredWithCovars(data, covars, xylim):
 		pl.title(name)
 		pl.xlim(xylim[:2])
 		pl.ylim(xylim[2:])
+		# pl.legend()
 #		pl.xticks(())
 #		pl.yticks(())
+		pl.gcf().canvas.set_window_title(data.actType[0])
+	
+	pl.figure(figIdx)
+	pl.legend(loc='lower right', prop=dict(size=12))
+	pl.figure(flag+figIdx)
+	pl.legend(loc='lower right', prop=dict(size=12))
 		
-
-	pl.gcf().canvas.set_window_title(data.actType[0])
-	pl.show()
+	
+	# pl.show()
 
 
 def main():
@@ -201,8 +235,10 @@ def main():
 		print('============================'+actTypes[i])
 		driSubType=dri[dri.actType==actTypes[i]]
 #		print('driSubType:', driSubType.label, driSubType.feature, driSubType.actType)
-		trainAndPredWithCovars(driSubType, covars, xylim=xylims[i])
-
+		trainAndPredWithCovars(i, driSubType, covars, xylim=xylims[i])
+	
+	pl.show()
+	
 if __name__=='__main__':
 	main()
 	
