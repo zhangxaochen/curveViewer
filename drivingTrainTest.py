@@ -136,7 +136,7 @@ def trainAndPredWithCovars(figIdx, data, covars, xylim):
 		train_accuList=[]
 		test_accuList=[]
 		xlimLeft=5
-		for num in range(xlimLeft, featuresCnt):
+		for num in range(xlimLeft, featuresCnt+1):
 			# print('num:', num)
 			train_res=[]
 			test_res=[]
@@ -174,8 +174,11 @@ def trainAndPredWithCovars(figIdx, data, covars, xylim):
 		pl.gca().set_ylabel('Accuracy(%)')
 		pl.xlim(xlimLeft, featuresCnt)
 		pl.ylim(0, 110)
-		pl.plot(train_accuList, label='trainMeanAccuracy')
-		pl.plot(test_accuList, label='testMeanAccuracy')
+		pl.xticks(np.arange(xlimLeft ,featuresCnt+1, 5))
+		# print np.arange(xlimLeft, featuresCnt+1).shape, len(train_accuList)
+		# pl.plot((xlimLeft, featuresCnt+1), train_accuList, label='trainMeanAccuracy')	#×
+		pl.plot(np.arange(xlimLeft, featuresCnt+1), train_accuList, label='trainMeanAccuracy')
+		pl.plot(np.arange(xlimLeft, featuresCnt+1), test_accuList, label='testMeanAccuracy')
 		pl.gcf().canvas.set_window_title(data.actType[0]+'_featureNum')
 
 		
