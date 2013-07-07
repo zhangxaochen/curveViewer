@@ -185,10 +185,10 @@ class MyWindow(QMainWindow):
 		fps=len(tsList)*1000/(tsList[-1]-tsList[0])
 		print('fps is:', fps)
 
-		axList=dic[Keys.kAx]
+		axList=list(map(float, dic[Keys.kAx]))
 #		print('axList is:',axList)
-		ayList=dic[Keys.kAy]
-		azList=dic[Keys.kAz]
+		ayList=list(map(float, dic[Keys.kAy]))
+		azList=list(map(float, dic[Keys.kAz]))
 		accList=[axList, ayList, azList]
 		#不好：
 #		accList=[
@@ -257,11 +257,14 @@ class MyWindow(QMainWindow):
 		self._canvas.ax.text(.05, .05, '%.1f FPS'%fps, fontsize=16, transform=self._canvas.ax.transAxes) #transAxes 00左下，11右上角
 #		self._canvas.ax.plot([2], [1], 'o')
 	
-		#绘制三条曲线
+		#绘制三条曲线 & Axyz 合加速度
 		if self.ui.actionAccBodyFrame.isChecked():
 			xl=ax.plot(accList[0], 'r', label='AxBF', linestyle='-')	#'o' 散点图
 			yl=ax.plot(accList[1], 'g', label='AyBF')
 			zl=ax.plot(accList[2], 'b', label='AzBF')
+			xyzList=[(accList[0][i]**2+accList[1][i]**2+accList[2][i]**2)**0.5 for i in range(len(accList[0]))]
+			xyzLine=ax.plot(xyzList, 'magenta', label='AxyzBF')
+			
 #			print('self._canvas.ax.legend is:',self._canvas.ax.legend)	#bound method
 
 #		xl,=ax.plot(axList, 'r')	#'o' 散点图

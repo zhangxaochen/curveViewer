@@ -11,6 +11,7 @@ rcParams['backend.qt4'] = 'PyQt4'
 
 from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg
 from matplotlib.figure import Figure
+
 from PyQt4 import QtGui, QtCore
 
 class MplCanvas(FigureCanvasQTAgg):

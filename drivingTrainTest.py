@@ -125,8 +125,8 @@ def trainAndPredWithCovars(figIdx, data, covars, xylim):
 	pl.subplots_adjust(bottom=.01, top=.95, hspace=.15, wspace=.05, left=.01, right=.99)
 	
 	flag=111
-	pl.figure(flag+figIdx)
-	pl.subplots_adjust(bottom=.01, top=.95, hspace=.4, wspace=.05, left=.06, right=.99)
+	pl.figure(flag+figIdx, figsize=[8, 8])
+	pl.subplots_adjust(bottom=.08, top=.95, hspace=.6, wspace=.05, left=.1, right=.95)
 
 	
 	#4 classifiers:
@@ -135,7 +135,7 @@ def trainAndPredWithCovars(figIdx, data, covars, xylim):
 		
 		train_accuList=[]
 		test_accuList=[]
-		xlimLeft=5
+		xlimLeft=115
 		for num in range(xlimLeft, featuresCnt+1):
 			# print('num:', num)
 			train_res=[]
@@ -172,6 +172,8 @@ def trainAndPredWithCovars(figIdx, data, covars, xylim):
 		h=pl.subplot(4,1, idx+1)
 		pl.title(name)
 		pl.gca().set_ylabel('Accuracy(%)')
+		if idx==3:
+			pl.gca().set_xlabel('Feature Number')
 		pl.xlim(xlimLeft, featuresCnt)
 		pl.ylim(0, 110)
 		pl.xticks(np.arange(xlimLeft ,featuresCnt+1, 5))
