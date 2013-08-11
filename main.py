@@ -17,36 +17,11 @@ import xml.etree.ElementTree as ET
 from lxml import etree
 from xml.dom import minidom
 import traceback
-from utils import Utils
+from utils import Utils, Keys
 #from matplotlib.pyplot import annotate
 import math
 #from xml.etree.ElementTree import ElementTree
 
-class Keys:
-	kRoot='CaptureSession'
-	kNodes='Nodes'
-	kNode='Node'
-	kData='Data'
-	
-	kTs='ts'
-	kTimestamp='timestamp'
-	
-	kAx='Ax'
-	kAy='Ay'
-	kAz='Az'
-	
-	kGx='Gx'
-	kGy='Gy'
-	kGz='Gz'
-	
-	kMx='Mx'
-	kMy='My'
-	kMz='Mz'
-	
-	kRw='Rw'
-	kRx='Rx'
-	kRy='Ry'
-	kRz='Rz'
 	
 #	xmlKeyList=[kTs, kAx, kAy, kAz, kGx, kGy, kGz, kMx, kMy, kMz, kRw, kRx, kRy, kRz]
 	

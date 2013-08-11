@@ -63,4 +63,61 @@ class Utils:
 		R[8] = 1 - sq_q1 - sq_q2;
 		
 		return R
+
+class Keys:
+	kRoot='CaptureSession'
+	kNodes='Nodes'
+	kPhyId='phyId'
+	kNode='Node'
+	kData='Data'
+	
+	kTs='ts'
+	kTimestamp='timestamp'
+	
+	kAx='Ax'
+	kAy='Ay'
+	kAz='Az'
+	
+	kGx='Gx'
+	kGy='Gy'
+	kGz='Gz'
+	
+	kMx='Mx'
+	kMy='My'
+	kMz='Mz'
+	
+	kRw='Rw'
+	kRx='Rx'
+	kRy='Ry'
+	kRz='Rz'
+	
+	#--------------------new style session
+	kSession='session'
+	kBeginTime='begin-time'
+	kEndTime='end-time'
+	kThreads='threads'
+	kThreadCount='thread-count'
+	kThread='thread'
+	kName='name'
+	kChannels='channels'
+	kChannelCount='channel-count'
+	kChannel='channel'
+	kFrames='frames'
+	kFrameCount='frame-count'
+	kFrame='frame'
+	kIndex='index'
+	kTime='time'
+	kValue='value'
+	kW='w'
+	kX='x'
+	kY='y'
+	kZ='z'
+	kA='a'
+	kG='g'
+	kM='m'
+	kR='r'
+	
+	
+	
+	
 		
