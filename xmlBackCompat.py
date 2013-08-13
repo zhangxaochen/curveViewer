@@ -6,6 +6,7 @@ Created on Aug 9, 2013
 @author: zhangxaochen
 
 xml 格式向后兼容
+输出旧格式xml：./oldStyle/*.xml
 '''
 import glob
 import os
@@ -30,11 +31,16 @@ interpKind='linear'
 def main():
 	folder=None
 	print(len(sys.argv), )
-	if(len(sys.argv)>1):
+	if len(sys.argv)>1 :
 		folder=sys.argv[1]
 	print(folder)
-	if(folder is None):
+	if folder is None:
 		folder=input("input xml data containing folder:")
+	if len(sys.argv)>2:
+		rate=int(sys.argv[2])
+	if len(sys.argv)>3:
+		interpKind=sys.argv[3]
+	
 	os.chdir(folder)
 	xmlFileList=glob.glob("*.xml")
 	print(xmlFileList)
