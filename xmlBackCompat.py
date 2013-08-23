@@ -48,21 +48,18 @@ def main():
 	psr=etree.XMLParser(remove_blank_text=True)
 	#----------------对每个文件：
 	for idx, fname in enumerate(xmlFileList):
-		#file=open(fname)
 		print('================fname:', fname)
 		tree=etree.parse(fname, parser=psr, )
 		root=tree.getroot()
 #		print(root.tag, root.tag is oldRootTag, type(root.tag))
 		print(root.tag)
-#		if root.tag == oldRootTag :
-#			print('++++++++old style xml (CaptureSession)')
-#			continue
-#		if root.tag != newRootTag :
-#			print('-----------probably wrong xml folder')
-#			continue
+		if root.tag == oldRootTag :
+			print('++++++++old style xml (CaptureSession)')
+			continue
+		if root.tag != newRootTag :
+			print('-----------probably wrong xml folder')
+			continue
 		
-#		threadsNode=root.find(Keys.kThreads)
-#		print(threadsNode)
 		threadList=root.find(Keys.kThreads).findall(Keys.kThread)
 		#========手机只算一个节点
 		assert len(threadList) is 1
@@ -99,7 +96,7 @@ def main():
 		
 		newTimeList=np.arange(startTime, stopTime, 1.0/rate)
 		
-		#interpData shape is {t:[], a:[ [],[],[] ], g:[ [],[],[] ], m.. r.. }
+		#-----------------interpData shape is {t:[], a:[ [],[],[] ], g:[ [],[],[] ], m.. r.. }
 		interpData={Keys.kTime:[], Keys.kA:[], Keys.kG:[], Keys.kM:[], Keys.kR:[]}
 		interpData[Keys.kTime]=newTimeList
 		for k, v in data.items():
