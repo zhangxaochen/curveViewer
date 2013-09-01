@@ -11,6 +11,9 @@ from lxml import etree
 
 folderPath=raw_input("input the xml files folder:\n")
 folderPath=folderPath if folderPath !='' else r'D:\Documents\Desktop\fff'
+if not os.path.isdir(folderPath):
+    sys.exit("%s is not a valid path, terminating~~"%folderPath)
+
 os.chdir(folderPath)
 print os.getcwd()
 
