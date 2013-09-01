@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'curveViewer.ui'
 #
-# Created: Mon May 27 23:54:11 2013
+# Created: Sun Sep  1 11:16:00 2013
 #      by: PyQt4 UI code generator 4.10
 #
 # WARNING! All changes made in this file will be lost!

@@ -134,7 +134,9 @@ class MatplotlibWidget(QtGui.QWidget):
 		self.canvas=MplCanvas()
 		self.vbl=QtGui.QVBoxLayout()
 
-
+		#2013年9月1日11:18:50		试图加 toolbar
+		from matplotlib.backends.backend_qt4 import NavigationToolbar2QT as NavigationToolbar
+		self.vbl.addWidget(NavigationToolbar(self.canvas, self))
 		self.vbl.addWidget(self.canvas)
 		self.setLayout(self.vbl)
 		

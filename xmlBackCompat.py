@@ -25,10 +25,11 @@ from test.test_iterlen import len
 oldRootTag='CaptureSession'
 newRootTag='session'
 
-rate=30
-interpKind='linear'
 
 def main():
+	rate=30
+	interpKind='linear'
+
 	folder=None
 	print(len(sys.argv), )
 	if len(sys.argv)>1 :
@@ -115,7 +116,8 @@ def main():
 			#计算 Rw, 放在第四行：
 			if k==Keys.kR:
 				d=interpData[k]
-				tmp=(1-(d[0]**2+d[1]**2+d[2]**2))**0.5
+				tmp=1-(d[0]**2+d[1]**2+d[2]**2)
+				tmp=tmp**0.5 if tmp>0 else 0
 				interpData[k].append(tmp)
 		
 		oldRoot=etree.Element(Keys.kRoot)
@@ -147,19 +149,14 @@ def main():
 			childData=etree.SubElement(childNode, Keys.kData, attrib=attribs)
 		
 		tree=etree.ElementTree(oldRoot)
-		newFolder=folder+os.sep+'oldStyle'
+		newFolder=folder+os.sep+'oldStyle-'+interpKind
 		if not os.path.exists(newFolder):
 			os.makedirs(newFolder)
 		newPath=newFolder+os.sep+fname
 		tree.write(newPath, pretty_print=True)
 		
-				
-			
 		if idx is 0 :
 			print(root)
-		
-		
-
 
 if __name__=="__main__":
 	main()
