@@ -1,36 +1,59 @@
 #coding=utf-8
 
-'''
-Created on Aug 9, 2013
+r'''
+	Created on Aug 9, 2013
+	@author: zhangxaochen
 
-@author: zhangxaochen
+	xml 格式向后兼容
+	时间戳对齐，固定采样频率，并输出两种格式xml：
+	用法：
+		python <thisScriptPath>\xmlBackCompat.py <xmlFolderPath> [rate] [kind: linear | cubic] [style: old | new]
+		<xmlFolderPath>	存放新格式xml数据的文件夹
+		rate			插值频率，数值型，默认 30(Hz)
+		kind			插值方法，字符串型，可选 linear 或 cubic，默认 linear
+		style			输出格式，字符串型，可选 old 或 new，默认 old
+		
+		e.g.
+			python C:\xmlBackCompat.py C:\xmlFolder 100 cubic new
 
-xml 格式向后兼容
-输出旧格式xml：./oldStyle/*.xml
+	输出位置：
+			<xmlFolderPath>\oldStyle-<kind>
+		或
+			<xmlFolderPath>\oldStyle-linear
 '''
+
 import glob
-import os
-import sys
+import os, sys
 import random
 import time
 import numpy as np
 #import xml.etree.ElementTree as ET
 from lxml import etree
 from scipy.interpolate import interp1d
-
+from pylab import *
 
 from utils import Keys
-from test.test_iterlen import len
+
 
 oldRootTag='CaptureSession'
 newRootTag='session'
 
+strOld='old'
+strNew='new'
+
+strLinear='linear'
+strCubic='cubic'
+
+rate=30
+interpKind=strLinear
+style=strOld
 
 def main():
-	rate=30
-	interpKind='linear'
-
+	global rate
+	global interpKind
+	global style
 	folder=None
+	
 	print(len(sys.argv), )
 	if len(sys.argv)>1 :
 		folder=sys.argv[1]
@@ -41,122 +64,283 @@ def main():
 		rate=int(sys.argv[2])
 	if len(sys.argv)>3:
 		interpKind=sys.argv[3]
+	if len(sys.argv)>4:
+		style=sys.argv[4]
+
+	if not os.path.isdir(folder):
+		sys.exit("%s is not a valid path, terminating~~"%folder)
+	if interpKind != strLinear and interpKind != strCubic:
+		sys.exit('interpKind must be *%s* or *%s*, terminating~~'%(strLinear, strCubic) )
+	if style != strOld and style != strNew :
+		sys.exit('style must be *%s* or *%s*, terminating~~'%(strOld, strNew) )
+
 	
 	os.chdir(folder)
 	xmlFileList=glob.glob("*.xml")
 	print(xmlFileList)
 	
-	psr=etree.XMLParser(remove_blank_text=True)
 	#----------------对每个文件：
 	for idx, fname in enumerate(xmlFileList):
 		print('================fname:', fname)
-		tree=etree.parse(fname, parser=psr, )
-		root=tree.getroot()
-#		print(root.tag, root.tag is oldRootTag, type(root.tag))
-		print(root.tag)
-		if root.tag == oldRootTag :
-			print('++++++++old style xml (CaptureSession)')
-			continue
-		if root.tag != newRootTag :
-			print('-----------probably wrong xml folder')
-			continue
+
+		begTiming=time.time()
+		data=loadFile(fname)
+		print('[[[loadFile() takes: %f'%(time.time()-begTiming))
 		
-		threadList=root.find(Keys.kThreads).findall(Keys.kThread)
-		#========手机只算一个节点
-		assert len(threadList) is 1
-		thread=threadList[0]
-		channelList=thread.find(Keys.kChannels).findall(Keys.kChannel)
-		assert len(channelList) is 4
-		
-		#data=dict(a=[], g=[], m=[], r=[])
-		data={Keys.kA:[], Keys.kG:[], Keys.kM:[], Keys.kR:[]}
-		#--------对每个传感器，目前 a, g, m, r：
-		for c in channelList:
-			cname=c.find(Keys.kName).text
-			frameList=c.find(Keys.kFrames).findall(Keys.kFrame)
-			#-------------对每一帧：
-			valList=[]
-			for idx, f in enumerate(frameList):
-				time=float(f.find(Keys.kTime).text)
-				if idx is 0:
-					print('time:', time, type(time))
-				v=f.find(Keys.kValue)
-				vx=float(v.find(Keys.kX).text)
-				vy=float(v.find(Keys.kY).text)
-				vz=float(v.find(Keys.kZ).text)
-				#vw 不一定有意义：
-				vw=float(v.find(Keys.kW).text)
-				
-				valList.append([time, vx, vy, vz, vw])
-				data[cname]=np.array(valList)
+		#-----------------interpData shape is {t:[], a:[ array([...]),[],[] ], g:[ [],[],[] ], m.. r.. }
+		begTiming=time.time()
+		interpData=getInterpData(data)
+		print('[[[getInterpData() takes: %f'%(time.time()-begTiming))
+
+		if style == strOld:
+			begTiming=time.time()
+			tree=getOldStyleElementTree(interpData)
+			print('[[[getOldStyleElementTree() takes: %f'%(time.time()-begTiming))
+		elif style == strNew:
+			# assert False	#还没实现
+			begTiming=time.time()
+			tree=getNewStyleElementTree(interpData)
+			print('[[[getOldStyleElementTree() takes: %f'%(time.time()-begTiming))
+		else:
+			print('Holy shit! What happened?? ')
 			
-		startTime=max(float(v[0][0]) for _,v in data.items())
-		stopTime=min(float(v[-1][0]) for _,v in data.items())
-		print('startTime:', startTime, [float(v[0][0]) for _,v in data.items()], )
-		print('stopTime:', stopTime, [float(v[-1][0]) for _,v in data.items()], )
-		
-		newTimeList=np.arange(startTime, stopTime, 1.0/rate)
-		
-		#-----------------interpData shape is {t:[], a:[ [],[],[] ], g:[ [],[],[] ], m.. r.. }
-		interpData={Keys.kTime:[], Keys.kA:[], Keys.kG:[], Keys.kM:[], Keys.kR:[]}
-		interpData[Keys.kTime]=newTimeList
-		for k, v in data.items():
-			for i in range(1, 4):
-				#插值前时间戳&数据：
-				oldTime=v[:, 0]
-#				print('oldTime:', oldTime)
-				oldData=v[:, i]
-#				print('oldData:', oldData)
-				f=interp1d(oldTime, oldData, kind=interpKind)
-				
-				newData=f(newTimeList)
-#				print('newData:', newData)
-				interpData[k].append(newData)
-			
-			#计算 Rw, 放在第四行：
-			if k==Keys.kR:
-				d=interpData[k]
-				tmp=1-(d[0]**2+d[1]**2+d[2]**2)
-				tmp=tmp**0.5 if tmp>0 else 0
-				interpData[k].append(tmp)
-		
-		oldRoot=etree.Element(Keys.kRoot)
-		childNodes=etree.SubElement(oldRoot, Keys.kNodes)
-		childNode=etree.SubElement(childNodes, Keys.kNode, 
-							attrib={Keys.kFrames:'%d'%len(newTimeList), Keys.kPhyId:'1'})
-		for idx, time in enumerate(newTimeList):
-			attribs={}
-			
-			attribs[Keys.kTs]=str(time*1000)
-			
-			attribs[Keys.kAx]=str(interpData[Keys.kA][0][idx])
-			attribs[Keys.kAy]=str(interpData[Keys.kA][1][idx])
-			attribs[Keys.kAz]=str(interpData[Keys.kA][2][idx])
-			
-			attribs[Keys.kGx]=str(interpData[Keys.kG][0][idx])
-			attribs[Keys.kGy]=str(interpData[Keys.kG][1][idx])
-			attribs[Keys.kGz]=str(interpData[Keys.kG][2][idx])
-			
-			attribs[Keys.kMx]=str(interpData[Keys.kM][0][idx])
-			attribs[Keys.kMy]=str(interpData[Keys.kM][1][idx])
-			attribs[Keys.kMz]=str(interpData[Keys.kM][2][idx])
-			
-			attribs[Keys.kRx]=str(interpData[Keys.kR][0][idx])
-			attribs[Keys.kRy]=str(interpData[Keys.kR][1][idx])
-			attribs[Keys.kRz]=str(interpData[Keys.kR][2][idx])
-			attribs[Keys.kRw]=str(interpData[Keys.kR][3][idx])
-			
-			childData=etree.SubElement(childNode, Keys.kData, attrib=attribs)
-		
-		tree=etree.ElementTree(oldRoot)
-		newFolder=folder+os.sep+'oldStyle-'+interpKind
+
+
+		newFolder=folder+os.sep+style+'-'+interpKind
 		if not os.path.exists(newFolder):
 			os.makedirs(newFolder)
 		newPath=newFolder+os.sep+fname
-		tree.write(newPath, pretty_print=True)
-		
-		if idx is 0 :
-			print(root)
 
+		begTiming=time.time()
+		tree.write(newPath, pretty_print=True, xml_declaration=True, encoding='utf-8')
+		print('[[[tree.write() takes: %f'%(time.time()-begTiming))
+
+
+def getOldStyleElementTree(interpData):
+	'''
+	PARAMS
+		interpData: a dict,  shape is {t:[], a:[ array([...]),[],[] ], g:[ [],[],[] ], m.. r.. }
+	RETURN 
+		tree: an OLD style etree.ElementTree instance
+	'''
+
+	newTimeList=interpData[Keys.kTime]
+	oldRoot=etree.Element(Keys.kRoot)
+	childNodes=etree.SubElement(oldRoot, Keys.kNodes)
+	childNode=etree.SubElement(childNodes, Keys.kNode, 
+						attrib={Keys.kFrames:'%d'%len(newTimeList), Keys.kPhyId:'1'})
+	for idx, ts in enumerate(newTimeList):
+		attribs={}
+		
+		#转换为毫秒：
+		attribs[Keys.kTs]=str(ts*1000)
+		
+		attribs[Keys.kAx]=str(interpData[Keys.kA][0][idx])
+		attribs[Keys.kAy]=str(interpData[Keys.kA][1][idx])
+		attribs[Keys.kAz]=str(interpData[Keys.kA][2][idx])
+		
+		attribs[Keys.kGx]=str(interpData[Keys.kG][0][idx])
+		attribs[Keys.kGy]=str(interpData[Keys.kG][1][idx])
+		attribs[Keys.kGz]=str(interpData[Keys.kG][2][idx])
+		
+		attribs[Keys.kMx]=str(interpData[Keys.kM][0][idx])
+		attribs[Keys.kMy]=str(interpData[Keys.kM][1][idx])
+		attribs[Keys.kMz]=str(interpData[Keys.kM][2][idx])
+		
+		attribs[Keys.kRx]=str(interpData[Keys.kR][0][idx])
+		attribs[Keys.kRy]=str(interpData[Keys.kR][1][idx])
+		attribs[Keys.kRz]=str(interpData[Keys.kR][2][idx])
+		attribs[Keys.kRw]=str(interpData[Keys.kR][3][idx])
+		
+		childData=etree.SubElement(childNode, Keys.kData, attrib=attribs)
+	
+	return etree.ElementTree(oldRoot)
+
+def getNewStyleElementTree(interpData):
+	'''
+	PARAMS
+		interpData: a dict,  shape is {t:[], a:[ array([...]),[],[] ], g:[ [],[],[] ], m.. r.. }
+	RETURN 
+		tree: a NEW style etree.ElementTree instance
+	'''
+	
+	#newTimeList:
+	ts=interpData[Keys.kTime]
+
+	root=etree.Element(Keys.kSession)
+	#---------------root's children
+	begTimeNode=etree.SubElement(root, Keys.kBeginTime)
+	begTimeNode.text=str(ts[0])
+	
+	endTimeNode=etree.SubElement(root, Keys.kEndTime)
+	endTimeNode.text=str(ts[-1])
+	
+	threadCountNode=etree.SubElement(root, Keys.kThreadCount)
+	threadCountNode.text=str(1)	#手机只算一个节点
+	
+	threadsNode=etree.SubElement(root, Keys.kThreads)
+	
+	#------------------threadsNode' children
+	threadNode=etree.SubElement(threadsNode, Keys.kThread)
+	
+	#------------------threadNode' children
+	threadNameNode=etree.SubElement(threadNode, Keys.kName)
+	threadNameNode.text='1'	#namely, phyID
+	
+	channelCountNode=etree.SubElement(threadNode, Keys.kChannelCount)
+	channelCountNode.text='4'	#a, g, m, r
+	
+	channelsNode=etree.SubElement(threadNode, Keys.kChannels)
+	
+	#------------------channelsNode' children
+	ckeys=[Keys.kA, Keys.kG, Keys.kM, Keys.kR]
+	for cname in ckeys:
+		channelNode=etree.SubElement(channelsNode, Keys.kChannel)
+		#------------------channelNode' children
+		channelNameNode=etree.SubElement(channelNode, Keys.kName)
+		channelNameNode.text=cname
+		
+		frameCountNode=etree.SubElement(channelNode, Keys.kFrameCount)
+		frameCountNode.text=str(len(ts))
+		
+		framesNode=etree.SubElement(channelNode, Keys.kFrames)
+		
+		#------------------framesNode' children
+		chanData=interpData[cname]
+		for i in range(len(ts)):
+			frameNode=etree.SubElement(framesNode, Keys.kFrame)
+			
+			#------------------frameNode' children
+			indexNode=etree.SubElement(frameNode, Keys.kIndex)
+			indexNode.text=str(i)
+			
+			timeNode=etree.SubElement(frameNode, Keys.kTime)
+			timeNode.text=str(ts[i])
+			
+			valueNode=etree.SubElement(frameNode, Keys.kValue)
+			
+			#------------------valueNode' children
+			xNode=etree.SubElement(valueNode, Keys.kX)
+			xNode.text=str(chanData[0][i])
+			
+			yNode=etree.SubElement(valueNode, Keys.kY)
+			yNode.text=str(chanData[1][i])
+			
+			zNode=etree.SubElement(valueNode, Keys.kZ)
+			zNode.text=str(chanData[2][i])
+			
+			if cname == Keys.kR:
+				wNode=etree.SubElement(valueNode, Keys.kW)
+				wNode.text=str(chanData[3][i])
+			
+	tree=etree.ElementTree(root)
+	return tree
+	
+def loadFile(fname):
+	'''
+	PARAMS
+		fname: xml file name
+	RETURN 
+		data:  shape is {Keys.kA:np.ndarray([[t, x,y,z], ..., [t, x,y,z]], Keys.kG:...,  Keys.kM:...,  Keys.kR:...}
+	'''
+	psr=etree.XMLParser(remove_blank_text=True)
+	tree=etree.parse(fname, parser=psr, )
+	root=tree.getroot()
+	#print(root.tag, root.tag is oldRootTag, type(root.tag))
+	print(root.tag)
+	if root.tag == oldRootTag :
+		print('++++++++old style xml (CaptureSession)')
+		return
+	if root.tag != newRootTag :
+		print('-----------probably wrong xml folder')
+		return
+	
+	threadList=root.find(Keys.kThreads).findall(Keys.kThread)
+	#========手机只算一个节点
+	assert len(threadList) is 1
+	thread=threadList[0]
+	channelList=thread.find(Keys.kChannels).findall(Keys.kChannel)
+	assert len(channelList) is 4
+	
+	#data=dict(a=[], g=[], m=[], r=[])
+	data={Keys.kA:[], Keys.kG:[], Keys.kM:[], Keys.kR:[]}
+	#--------对每个传感器，目前 a, g, m, r：
+	for c in channelList:
+		cname=c.find(Keys.kName).text
+		frameList=c.find(Keys.kFrames).findall(Keys.kFrame)
+		#-------------对每一帧：
+		valList=[]
+		for idx, f in enumerate(frameList):
+			ts=float(f.find(Keys.kTime).text)
+			if idx is 0:
+				print('ts:', ts, type(ts))
+				# continue
+			if idx in [i for i in range(10)]:
+				continue	#去掉第一帧
+			v=f.find(Keys.kValue)
+			vx=float(v.find(Keys.kX).text)
+			vy=float(v.find(Keys.kY).text)
+			vz=float(v.find(Keys.kZ).text)
+			
+			#vw 不一定有意义，也不一定存在：
+			if v.find(Keys.kW) is not None:
+				vw=float(v.find(Keys.kW).text)
+				valList.append([ts, vx, vy, vz, vw])
+			else:
+				# print('valList.append([ts, vx, vy, vz, ])')
+				valList.append([ts, vx, vy, vz, ])
+			# valList.append([ts, vx, vy, vz, vw])
+			# data[cname]=np.array(valList)	#×, 低效， 应在循环外
+		data[cname]=np.array(valList)
+	return data
+
+def getInterpData(data):
+	'''
+	PARAMS
+		data:  shape is {Keys.kA:np.ndarray([[t, x,y,z], ..., [t, x,y,z]], Keys.kG:...,  Keys.kM:...,  Keys.kR:...}
+	RETURN
+		interpData: a dict,  shape is {t:[], a:[ array([...]),[],[] ], g:[ [],[],[] ], m.. r.. }
+	'''
+	global rate
+	startTime=max(float(v[0][0]) for _,v in data.items())
+	stopTime=min(float(v[-1][0]) for _,v in data.items())
+	print('startTime:', startTime, [float(v[0][0]) for _,v in data.items()], )
+	print('stopTime:', stopTime, [float(v[-1][0]) for _,v in data.items()], )
+	
+	newTimeList=np.arange(startTime, stopTime, 1.0/rate)
+
+	interpData={Keys.kTime:[], Keys.kA:[], Keys.kG:[], Keys.kM:[], Keys.kR:[]}
+	interpData[Keys.kTime]=newTimeList
+	for k, v in data.items():
+		for i in range(1, 4):
+			#插值前时间戳&数据：
+			oldTime=v[:, 0]
+			# print('oldTime:', oldTime.shape, data[Keys.kA].shape)
+			oldData=v[:, i]
+			#print('oldData:', oldData)
+			f=interp1d(oldTime, oldData, kind=interpKind)
+			
+			newData=f(newTimeList)
+			#print('newData:', newData)
+			interpData[k].append(newData)
+		
+
+	#计算 Rw, 放在第四行：
+	d=interpData[Keys.kR]
+	tmp=1-(d[0]**2+d[1]**2+d[2]**2)
+	# tmp=tmp**0.5 if (tmp>0).all() else np.zeros(tmp.shape)		#×	别全 zeros
+	tmp=np.array([i**0.5 if i>0 else 0  for i in tmp])
+	interpData[Keys.kR].append(tmp)
+	
+	#DEBUG: 画 Rw， 发现因第一帧导致龙格现象
+	# key=Keys.kR
+	# v=data[key]
+	# rz=interpData[key][2]
+	# cut=300
+	# plot(newTimeList[:cut], rz[:cut], v[:cut,0], v[:cut, 3], 'go')
+	# show()
+	return interpData
+	
+	
 if __name__=="__main__":
 	main()

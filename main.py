@@ -303,12 +303,12 @@ class MyWindow(QMainWindow):
 #		self._canvas.ax.autoscale()
 		xleft, xright=self._canvas.ax.get_xlim()
 		xspan=xright-xleft
-		self._canvas.setMinimumWidth(xspan*2)
+		# self._canvas.setMinimumWidth(xspan*2)	#有效，不过数据多了，界面太宽
 #		self._canvas.ax.set_xlim(xleft, xright*2)
 #		self._canvas.ax.set_xscale('log')
 		import numpy as np
 		if xspan>200:
-			self._canvas.ax.set_xticks(np.arange(xleft, xright+1, 25))
+			self._canvas.ax.set_xticks(np.arange(xleft, xright+1, 50))
 		
 		print(self._canvas.ax.get_xaxis())
 		
