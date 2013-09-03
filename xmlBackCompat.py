@@ -276,7 +276,8 @@ def loadFile(fname):
 			if idx is 0:
 				print('ts:', ts, type(ts))
 				# continue
-			if idx in [i for i in range(10)]:
+			# if idx in [i for i in range(10)]:	#学傻了
+			if idx in range(10):
 				continue	#去掉第一帧
 			v=f.find(Keys.kValue)
 			vx=float(v.find(Keys.kX).text)
