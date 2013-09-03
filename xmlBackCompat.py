@@ -17,9 +17,10 @@ r'''
 			python C:\xmlBackCompat.py C:\xmlFolder 100 cubic new
 
 	输出位置：
-			<xmlFolderPath>\oldStyle-<kind>
-		或
-			<xmlFolderPath>\oldStyle-linear
+		<xmlFolderPath>\<style>-<kind>
+		e.g.
+			C:\xmlFolder\new-cubic
+		
 '''
 
 import glob
