@@ -4,6 +4,7 @@ Created on Apr 8, 2013
 
 @author: zhangxaochen
 '''
+# import lxml._elementpath as DONTUSE
 #from PyQt4 import QtCore, QtGui
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
@@ -21,10 +22,6 @@ from utils import Utils, Keys
 #from matplotlib.pyplot import annotate
 import math
 #from xml.etree.ElementTree import ElementTree
-
-	
-#	xmlKeyList=[kTs, kAx, kAy, kAz, kGx, kGy, kGz, kMx, kMy, kMz, kRw, kRx, kRy, kRz]
-	
 
 class MyWidgetCurveView(QWidget):
 	
