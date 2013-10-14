@@ -234,7 +234,7 @@ class MyWindow(QMainWindow):
 		self._canvas.ax.text(.05, .05, '%.1f FPS'%fps, fontsize=16, transform=self._canvas.ax.transAxes) #transAxes 00左下，11右上角
 #		self._canvas.ax.plot([2], [1], 'o')
 	
-		#绘制三条曲线 & Axyz 合加速度
+		#绘制加速度三条曲线 & Axyz 合加速度
 		if self.ui.actionAccBodyFrame.isChecked():
 			xl=ax.plot(accList[0], 'r', label='AxBF', linestyle='-')	#'o' 散点图
 			yl=ax.plot(accList[1], 'g', label='AyBF')
@@ -244,14 +244,8 @@ class MyWindow(QMainWindow):
 			xyzList=(tmp[0]**2+tmp[1]**2+tmp[2]**2)**0.5
 			xyzLine=ax.plot(xyzList, 'magenta', label='AxyzBF')
 			
-#			print('self._canvas.ax.legend is:',self._canvas.ax.legend)	#bound method
+			# print('self._canvas.ax.legend is:',self._canvas.ax.legend)	#bound method
 
-#		xl,=ax.plot(axList, 'r')	#'o' 散点图
-#		yl,=ax.plot(ayList, 'g')
-#		zl,=ax.plot(azList, 'b')
-#		axis=fig.gca()
-#		print(xl, yl, zl, )
-		
 		#acc 世界坐标曲线
 		if self.ui.actionAccWorldFrame.isChecked():
 			ax.plot(accWfList[0], 'r', label='AxWF', linewidth=2, linestyle='--')
@@ -268,7 +262,7 @@ class MyWindow(QMainWindow):
 			# print('velList[0] is:',velList[0])
 			# vxyList=[math.sqrt(velList[0][i]**2+velList[1][i]**2) for i in range(dataCnt)]	#烦
 			tmp=np.array(velList)
-			vxyList=(velList[0]**2+velList[1]**2)**0.5
+			vxyList=(tmp[0]**2+tmp[1]**2)**0.5
 			ax.plot(vxyList, 'magenta', label='Vxy', linewidth=2)
 			
 		#位移曲线
@@ -285,13 +279,24 @@ class MyWindow(QMainWindow):
 			axd.plot(disList[0][0], disList[1][0], 'bo')
 			axd.plot(disList[0][-1], disList[1][-1], 'bo')
 			#print('[disList[0][-1]], [disList[1][-1]] is:',[disList[0][-1]], [disList[1][-1]])
-#			axd.annotate('startPoint', xy=(disList[0][0], disList[1][0]), xycoords='data', xytext=(50,-50), textcoords='offset points', fontsize=16, arrowprops=dict(arrowstyle='->', connectionstyle='arc3, rad=.2'))
+			# axd.annotate('startPoint', xy=(disList[0][0], disList[1][0]), xycoords='data', xytext=(50,-50), textcoords='offset points', fontsize=16, arrowprops=dict(arrowstyle='->', connectionstyle='arc3, rad=.2'))
 			for k, v in {0:'startPoint', -1:'endPoint'}.items():
 				axd.annotate(v, xy=(disList[0][k], disList[1][k]), xycoords='data', xytext=(20,-20), textcoords='offset points', 
 					bbox = dict(boxstyle = 'round,pad=0.5', fc = 'yellow', alpha = 0.5),
 					fontsize=12, arrowprops=dict(arrowstyle='->', connectionstyle='arc3, rad=.2'))
+		
+		#gyro 角速度曲线
+		if self.ui.actionGyro_in_BF.isChecked():
+			gyroList=[]
+			gyroList.append(list(map(float, dic[Keys.kGx])))
+			gyroList.append(list(map(float, dic[Keys.kGy])))
+			gyroList.append(list(map(float, dic[Keys.kGz])))
 			
+			ax.plot(gyroList[0], 'r', label='GxBF')
+			ax.plot(gyroList[1], 'g', label='GyBF')
+			ax.plot(gyroList[2], 'b', label='GzBF')
 			
+		
 		#是否添加图例
 		if self.ui.actionLegend.isChecked():
 #			ax.legend(loc='best')
