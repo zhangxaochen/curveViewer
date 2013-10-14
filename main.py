@@ -419,7 +419,7 @@ class MyWindow(QMainWindow):
 				print(msg)
 				self.ui.statusbar.showMessage(msg)
 				return
-
+		
 		#ljj	要求：
 		# configFile=open(pathTo+os.path.sep+'config.txt', 'w')
 		configFile=open('.'+os.path.sep+'config.txt', 'w')
@@ -428,10 +428,13 @@ class MyWindow(QMainWindow):
 		#对每个 file
 		for fileItem in fileSelectedList:
 			fname=fileItem.text()
+			mainFname =os.path.splitext(fname)[0]
+			
+			#DY	杜宇要求：
+			labelFile=open(mainFname+'.txt', 'w')
+			# labelFile.write('%f\t%f\n'%(tsList[left]/1000, tsList[right]/1000) )
 			
 			#按李嘉俊要求：ljj
-			fallingID =os.path.splitext(fname)[0]
-			
 #			tree=etree.ElementTree(file=fname, parser=psr)
 			tree=etree.parse(fname, parser=psr)
 			elemRoot=tree.getroot()
@@ -443,9 +446,14 @@ class MyWindow(QMainWindow):
 				elemNode.set('frames', str(right-left))
 				print('left, right:', left, right)
 				
-				#ljj
-				configFile.write('%s\t%d\t%d\n'%(fallingID, left, right))
+				#DY	杜宇要求：
+				dic=self.xmlDataList[i]
+				tsList=dic[Keys.kTs] if dic.get(Keys.kTs) else dic[Keys.kTimestamp]
+				tsList=list(map(float, tsList))
+				labelFile.write('%f\t%f\n'%(tsList[left]/1000, tsList[right]/1000) )
 				
+				#ljj
+				configFile.write('%s\t%d\t%d\n'%(mainFname, left, right))
 				
 				#对每个选中的 data
 #				for j in range(left, right+1):
@@ -493,7 +501,12 @@ class MyWindow(QMainWindow):
 			
 			
 		self.onCurrentNodeItemChanged(self.ui.listWidgetNode.currentItem())
-#		self.ax=self.fig.add_subplot(111)
+		# self.ax=self.fig.add_subplot(111)
+	
+	@QtCore.pyqtSlot(bool)
+	def on_actionGyro_in_BF_triggered(self, checked):
+		self.onCurrentNodeItemChanged(self.ui.listWidgetNode.currentItem())
+		
 	
 	@QtCore.pyqtSlot(bool)
 	def on_actionLegend_triggered(self, checked):
