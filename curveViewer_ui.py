@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'curveViewer.ui'
 #
-# Created: Sun Sep  1 11:16:00 2013
+# Created: Mon Oct 14 10:57:22 2013
 #      by: PyQt4 UI code generator 4.10
 #
 # WARNING! All changes made in this file will be lost!
@@ -41,7 +41,7 @@ class Ui_MainWindow(object):
         self.scrollArea_2.setWidgetResizable(True)
         self.scrollArea_2.setObjectName(_fromUtf8("scrollArea_2"))
         self.scrollAreaWidgetContents = QtGui.QWidget()
-        self.scrollAreaWidgetContents.setGeometry(QtCore.QRect(0, 0, 237, 113))
+        self.scrollAreaWidgetContents.setGeometry(QtCore.QRect(0, 0, 276, 197))
         self.scrollAreaWidgetContents.setObjectName(_fromUtf8("scrollAreaWidgetContents"))
         self.verticalLayout_2 = QtGui.QVBoxLayout(self.scrollAreaWidgetContents)
         self.verticalLayout_2.setObjectName(_fromUtf8("verticalLayout_2"))
@@ -91,7 +91,7 @@ class Ui_MainWindow(object):
         self.scrollArea.setWidgetResizable(True)
         self.scrollArea.setObjectName(_fromUtf8("scrollArea"))
         self.mplWidget = MatplotlibWidget()
-        self.mplWidget.setGeometry(QtCore.QRect(0, 0, 360, 366))
+        self.mplWidget.setGeometry(QtCore.QRect(0, 0, 338, 366))
         self.mplWidget.setObjectName(_fromUtf8("mplWidget"))
         self.scrollArea.setWidget(self.mplWidget)
         self.horizontalLayout_2.addWidget(self.splitter_2)
@@ -130,6 +130,10 @@ class Ui_MainWindow(object):
         self.actionLegend.setCheckable(True)
         self.actionLegend.setChecked(True)
         self.actionLegend.setObjectName(_fromUtf8("actionLegend"))
+        self.actionV_in_BF = QtGui.QAction(MainWindow)
+        self.actionV_in_BF.setObjectName(_fromUtf8("actionV_in_BF"))
+        self.actionGyro_in_BF = QtGui.QAction(MainWindow)
+        self.actionGyro_in_BF.setObjectName(_fromUtf8("actionGyro_in_BF"))
         self.menuFile.addAction(self.actionOpen)
         self.menuFile.addAction(self.actionSave)
         self.menuFile.addAction(self.actionExit)
@@ -139,6 +143,8 @@ class Ui_MainWindow(object):
         self.menuView.addAction(self.actionDisplacement)
         self.menuView.addSeparator()
         self.menuView.addAction(self.actionLegend)
+        self.menuView.addAction(self.actionV_in_BF)
+        self.menuView.addAction(self.actionGyro_in_BF)
         self.menubar.addAction(self.menuFile.menuAction())
         self.menubar.addAction(self.menuView.menuAction())
 
@@ -169,5 +175,8 @@ class Ui_MainWindow(object):
         self.actionDisplacement.setShortcut(_translate("MainWindow", "Ctrl+D", None))
         self.actionLegend.setText(_translate("MainWindow", "(&L)egend", None))
         self.actionLegend.setShortcut(_translate("MainWindow", "Ctrl+L", None))
+        self.actionV_in_BF.setText(_translate("MainWindow", "V in BF", None))
+        self.actionGyro_in_BF.setText(_translate("MainWindow", "(&G)yro in BF", None))
+        self.actionGyro_in_BF.setShortcut(_translate("MainWindow", "Ctrl+G", None))
 
 from matplotlibwidget import MatplotlibWidget

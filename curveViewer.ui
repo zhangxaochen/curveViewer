@@ -33,8 +33,8 @@
           <rect>
            <x>0</x>
            <y>0</y>
-           <width>237</width>
-           <height>113</height>
+           <width>276</width>
+           <height>197</height>
           </rect>
          </property>
          <layout class="QVBoxLayout" name="verticalLayout_2">
@@ -83,9 +83,6 @@
            </layout>
           </item>
          </layout>
-         <zorder>listWidgetFile</zorder>
-         <zorder>layoutWidget</zorder>
-         <zorder>listWidgetFile</zorder>
         </widget>
        </widget>
        <widget class="QListWidget" name="listWidgetNode">
@@ -118,7 +115,7 @@
          <rect>
           <x>0</x>
           <y>0</y>
-          <width>360</width>
+          <width>338</width>
           <height>366</height>
          </rect>
         </property>
@@ -155,6 +152,8 @@
     <addaction name="actionDisplacement"/>
     <addaction name="separator"/>
     <addaction name="actionLegend"/>
+    <addaction name="actionV_in_BF"/>
+    <addaction name="actionGyro_in_BF"/>
    </widget>
    <addaction name="menuFile"/>
    <addaction name="menuView"/>
@@ -249,6 +248,19 @@
    </property>
    <property name="shortcut">
     <string>Ctrl+L</string>
+   </property>
+  </action>
+  <action name="actionV_in_BF">
+   <property name="text">
+    <string>V in BF</string>
+   </property>
+  </action>
+  <action name="actionGyro_in_BF">
+   <property name="text">
+    <string>(&amp;G)yro in BF</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+G</string>
    </property>
   </action>
  </widget>

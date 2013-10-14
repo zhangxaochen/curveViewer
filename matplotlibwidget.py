@@ -79,7 +79,7 @@ class MplCanvas(FigureCanvasQTAgg):
 		if self.prevX is not curX:
 			print('self.prevX, self.startX, curX:', self.prevX, self.startX, curX)
 			self.drawRectArea(self.startX, curX)
-		self.prevX=curX	
+			self.prevX=curX	
 		
 	
 	def drawRectArea(self, start, end):
@@ -132,11 +132,11 @@ class MatplotlibWidget(QtGui.QWidget):
 	def __init__(self, parent=None):
 		super(MatplotlibWidget, self).__init__(parent)
 		self.canvas=MplCanvas()
-		self.vbl=QtGui.QVBoxLayout()
+		self.vbl=QtGui.QVBoxLayout(self)
 
-		#2013年9月1日11:18:50		试图加 toolbar
+		# 2013年9月1日11:18:50		试图加 toolbar
 		from matplotlib.backends.backend_qt4 import NavigationToolbar2QT as NavigationToolbar
 		self.vbl.addWidget(NavigationToolbar(self.canvas, self))
 		self.vbl.addWidget(self.canvas)
-		self.setLayout(self.vbl)
+		# self.setLayout(self.vbl)	#layout 用 self 初始化过
 		

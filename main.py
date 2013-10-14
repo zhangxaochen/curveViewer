@@ -1,7 +1,7 @@
 #coding=utf-8
 '''
 Created on Apr 8, 2013
-
+Created on Apr 8, 2013
 @author: zhangxaochen
 '''
 # import lxml._elementpath as DONTUSE
@@ -22,6 +22,9 @@ from utils import Utils, Keys
 #from matplotlib.pyplot import annotate
 import math
 #from xml.etree.ElementTree import ElementTree
+
+import numpy as np
+
 
 class MyWidgetCurveView(QWidget):
 	
@@ -207,6 +210,8 @@ class MyWindow(QMainWindow):
 					acc=accWfList[k][i-1]
 					#实验室的N7 似乎有第一帧时间戳的 bug
 					dt=tsList[i]-tsList[i-1]
+					if dt>1000:
+						print('!@#$%^&*=============================')
 					dt=tsList[-1]-tsList[-2] if dt>1000 else dt
 					velList[k][i]=velList[k][i-1]+acc*(dt)/1000
 					#velList[k][i]=velList[k][i-1]+acc*(tsList[i]-tsList[i-1])/1000
@@ -234,7 +239,9 @@ class MyWindow(QMainWindow):
 			xl=ax.plot(accList[0], 'r', label='AxBF', linestyle='-')	#'o' 散点图
 			yl=ax.plot(accList[1], 'g', label='AyBF')
 			zl=ax.plot(accList[2], 'b', label='AzBF')
-			xyzList=[(accList[0][i]**2+accList[1][i]**2+accList[2][i]**2)**0.5 for i in range(len(accList[0]))]
+			# xyzList=[(accList[0][i]**2+accList[1][i]**2+accList[2][i]**2)**0.5 for i in range(len(accList[0]))]	#烦
+			tmp=np.array(accList)
+			xyzList=(tmp[0]**2+tmp[1]**2+tmp[2]**2)**0.5
 			xyzLine=ax.plot(xyzList, 'magenta', label='AxyzBF')
 			
 #			print('self._canvas.ax.legend is:',self._canvas.ax.legend)	#bound method
@@ -258,8 +265,10 @@ class MyWindow(QMainWindow):
 			ax.plot(velList[0], 'r', label='Vx', linewidth=2)
 			ax.plot(velList[1], 'g', label='Vy', linewidth=2)
 			ax.plot(velList[2], 'b', label='Vz', linewidth=2)
-			print('velList[0] is:',velList[0])
-			vxyList=[math.sqrt(velList[0][i]**2+velList[1][i]**2) for i in range(dataCnt)]
+			# print('velList[0] is:',velList[0])
+			# vxyList=[math.sqrt(velList[0][i]**2+velList[1][i]**2) for i in range(dataCnt)]	#烦
+			tmp=np.array(velList)
+			vxyList=(velList[0]**2+velList[1]**2)**0.5
 			ax.plot(vxyList, 'magenta', label='Vxy', linewidth=2)
 			
 		#位移曲线
@@ -303,9 +312,9 @@ class MyWindow(QMainWindow):
 		# self._canvas.setMinimumWidth(xspan*2)	#有效，不过数据多了，界面太宽
 #		self._canvas.ax.set_xlim(xleft, xright*2)
 #		self._canvas.ax.set_xscale('log')
-		import numpy as np
 		if xspan>200:
-			self._canvas.ax.set_xticks(np.arange(xleft, xright+1, 50))
+			# self._canvas.ax.set_xticks(np.arange(xleft, xright+1, 50))
+			pass
 		
 		print(self._canvas.ax.get_xaxis())
 		
