@@ -113,7 +113,13 @@ def main():
 		newPath=newFolder+os.sep+fname
 
 		begTiming=time.time()
-		tree.write(newPath, pretty_print=True, xml_declaration=True, encoding='utf-8')
+		# tree.write(newPath, pretty_print=True, xml_declaration=True, encoding='utf-8')
+		#为避免 tree.write 再把乱码转为汉字， 直接用 file.write：
+		xmlStr=etree.tostring(tree, pretty_print=True, xml_declaration=True, encoding='utf-8').decode()
+		ff=open(newPath, 'w')
+		ff.write(xmlStr)
+		ff.close()
+		
 		print('[[[tree.write() takes: %f'%(time.time()-begTiming))
 
 

@@ -450,7 +450,12 @@ class MyWindow(QMainWindow):
 				dic=self.xmlDataList[i]
 				tsList=dic[Keys.kTs] if dic.get(Keys.kTs) else dic[Keys.kTimestamp]
 				tsList=list(map(float, tsList))
-				labelFile.write('%f\t%f\n'%(tsList[left]/1000, tsList[right]/1000) )
+				#驾驶label：	1->加速 2->减速 3->转弯 4->驾驶
+				label=-1
+				pos=fname.find('_a')
+				if pos!=-1:
+					label=int(fname[pos+2])+1
+				labelFile.write('%f\t%f\t%f\n'%(tsList[left]/1000, tsList[right]/1000) )
 				
 				#ljj
 				configFile.write('%s\t%d\t%d\n'%(mainFname, left, right))
