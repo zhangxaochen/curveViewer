@@ -33,7 +33,10 @@ class MplCanvas(FigureCanvasQTAgg):
 		self.mpl_connect('button_press_event', self.on_press)
 		self.mpl_connect('button_release_event', self.on_release)
 		self.mpl_connect('motion_notify_event', self.on_motion)
+		self.mpl_connect('key_press_event', self.on_key_press)
+		self.mpl_connect('key_release_event', self.on_key_release)
 		
+		self.ctrlPressed=False
 		self.startX=None
 		self.prevX=None
 #		self.mouseReleaseX=None
@@ -42,6 +45,17 @@ class MplCanvas(FigureCanvasQTAgg):
 
 #		self.areaSelected=QtCore.pyqtSignal(tuple)
 	
+	def on_key_press(self, e):
+		print('you pressed:', e.key, e.xdata, e.ydata, type(e.key))
+		
+		if e.key == 'control':
+			self.ctrlPressed=True
+		
+	def on_key_release(self, e):
+		print('you released:', e.key, e.xdata, e.ydata)
+		if e.key == 'control':
+			self.ctrlPressed=False
+
 	def on_press(self, e):
 		if not(e.inaxes is self.ax and e.button is 1):
 		#若非 axes 内左键 
@@ -69,7 +83,7 @@ class MplCanvas(FigureCanvasQTAgg):
 		
 		
 	def on_motion(self, e):
-		if self.startX is None or e.inaxes is not self.ax:
+		if self.startX is None or e.inaxes is not self.ax or not self.ctrlPressed:
 			#若没 press过， 或鼠标移出范围
 			return
 #		print('on_motion')
@@ -132,6 +146,8 @@ class MatplotlibWidget(QtGui.QWidget):
 	def __init__(self, parent=None):
 		super(MatplotlibWidget, self).__init__(parent)
 		self.canvas=MplCanvas()
+		self.canvas.setFocusPolicy( QtCore.Qt.ClickFocus )
+		self.canvas.setFocus()
 		self.vbl=QtGui.QVBoxLayout(self)
 
 		# 2013年9月1日11:18:50		试图加 toolbar
