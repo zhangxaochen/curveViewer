@@ -211,7 +211,7 @@ class MyWindow(QMainWindow):
 					#实验室的N7 似乎有第一帧时间戳的 bug
 					dt=tsList[i]-tsList[i-1]
 					if dt>1000:
-						print('!@#$%^&*=============================')
+						print('=======================dt>1000. dt, i are:', dt, i)
 					dt=tsList[-1]-tsList[-2] if dt>1000 else dt
 					velList[k][i]=velList[k][i-1]+acc*(dt)/1000
 					#velList[k][i]=velList[k][i-1]+acc*(tsList[i]-tsList[i-1])/1000

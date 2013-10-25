@@ -57,7 +57,7 @@ class MplCanvas(FigureCanvasQTAgg):
 			self.ctrlPressed=False
 
 	def on_press(self, e):
-		if not(e.inaxes is self.ax and e.button is 1):
+		if not(e.inaxes is self.ax and e.button is 1 and self.ctrlPressed):
 		#若非 axes 内左键 
 			return
 		print('on_press')
@@ -83,7 +83,8 @@ class MplCanvas(FigureCanvasQTAgg):
 		
 		
 	def on_motion(self, e):
-		if self.startX is None or e.inaxes is not self.ax or not self.ctrlPressed:
+		# if self.startX is None or e.inaxes is not self.ax or not self.ctrlPressed:
+		if not (self.startX and e.inaxes is self.ax and self.ctrlPressed):
 			#若没 press过， 或鼠标移出范围
 			return
 #		print('on_motion')
