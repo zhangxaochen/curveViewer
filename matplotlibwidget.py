@@ -156,4 +156,3 @@ class MatplotlibWidget(QtGui.QWidget):
 		self.vbl.addWidget(NavigationToolbar(self.canvas, self))
 		self.vbl.addWidget(self.canvas)
 		# self.setLayout(self.vbl)	#layout 用 self 初始化过
-		
