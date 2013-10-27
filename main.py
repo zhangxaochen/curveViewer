@@ -1,8 +1,9 @@
 #coding=utf-8
 '''
 Created on Apr 8, 2013
-Created on Apr 8, 2013
 @author: zhangxaochen
+已知bug：
+	
 '''
 # import lxml._elementpath as DONTUSE
 #from PyQt4 import QtCore, QtGui
@@ -434,6 +435,10 @@ class MyWindow(QMainWindow):
 			labelFile=open(mainFname+'.txt', 'w')
 			# labelFile.write('%f\t%f\n'%(tsList[left]/1000, tsList[right]/1000) )
 			
+			#2013年10月28日	threshold 
+			thLabelFile=open(mainFname+'.x', 'a')
+			
+			
 			#按李嘉俊要求：ljj
 #			tree=etree.ElementTree(file=fname, parser=psr)
 			tree=etree.parse(fname, parser=psr)
@@ -447,6 +452,7 @@ class MyWindow(QMainWindow):
 				print('left, right:', left, right)
 				
 				#DY	杜宇要求：
+				#github 似乎把代码搞丢了？	2013年10月28日0:03:58
 				dic=self.xmlDataList[i]
 				tsList=dic[Keys.kTs] if dic.get(Keys.kTs) else dic[Keys.kTimestamp]
 				tsList=list(map(float, tsList))
@@ -455,7 +461,10 @@ class MyWindow(QMainWindow):
 				pos=fname.find('_a')
 				if pos!=-1:
 					label=int(fname[pos+2])+1
-				labelFile.write('%f\t%f\t%f\n'%(tsList[left]/1000, tsList[right]/1000) )
+				labelFile.write('%f\t%f\t%f\n'%(label, tsList[left]/1000, tsList[right]/1000) )
+				
+				#threshold 标签，为了找出 th、freq 关系
+				thLabelFile.write('%d\t%d\n'%(left, right) )
 				
 				#ljj
 				configFile.write('%s\t%d\t%d\n'%(mainFname, left, right))

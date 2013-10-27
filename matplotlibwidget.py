@@ -46,13 +46,13 @@ class MplCanvas(FigureCanvasQTAgg):
 #		self.areaSelected=QtCore.pyqtSignal(tuple)
 	
 	def on_key_press(self, e):
-		print('you pressed:', e.key, e.xdata, e.ydata, type(e.key))
+		print('key pressed:', e.key, e.xdata, e.ydata, type(e.key))
 		
 		if e.key == 'control':
 			self.ctrlPressed=True
 		
 	def on_key_release(self, e):
-		print('you released:', e.key, e.xdata, e.ydata)
+		print('key released :', e.key, e.xdata, e.ydata)
 		if e.key == 'control':
 			self.ctrlPressed=False
 
