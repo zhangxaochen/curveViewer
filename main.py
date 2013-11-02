@@ -81,6 +81,27 @@ class MyWidgetCurveView(QWidget):
 		pass
 		
 class MyWindow(QMainWindow):
+	channelsToShow=[
+	'aBF_X',
+	'aBF_Y',
+	'aBF_Z',
+	'aBF_XYZ',
+	
+	'aWF_X',
+	'aWF_Y',
+	'aWF_Z',
+	'aWF_XY',
+	
+	'vX',
+	'vY',
+	'vZ',
+	
+	'gBF_X',
+	'gBF_Y',
+	'gBF_Z',
+	
+	]
+	
 	class XmlStuff(object):pass
 	xmlDataList=[]
 	
@@ -113,6 +134,19 @@ class MyWindow(QMainWindow):
 		self.ui.listWidgetFile.currentItemChanged.connect(self.onCurrentFileItemChanged)
 
 		self._canvas.areaSelected.connect(self.onAxisAreaSelected)
+		
+		self.ui.listWidgetChannel.addItems(self.channelsToShow)
+		
+	
+	@pyqtSlot()
+	def on_listWidgetChannel_itemSelectionChanged(self):
+		print('on_listWidgetChannel_itemSelectionChanged')
+		items=self.ui.listWidgetChannel.selectedItems()
+		print(items)
+		for item in items:
+			print(item.text())
+			idx=self.channelsToShow.index(item.text())
+		pass
 		
 	def onCurrentFileItemChanged(self, item):
 		print('onCurrentFileItemChanged')
@@ -572,7 +606,10 @@ class MyWindow(QMainWindow):
 		#py2 没有 clear 函数， 兼容性：
 		# self.xmlDataList.clear()
 		del self.xmlDataList[:]
-		
+	
+	def testSlot(self):
+		print('testSlot')
+		pass
 
 def main():
 	app=QApplication(sys.argv)

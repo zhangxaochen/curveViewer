@@ -34,7 +34,7 @@
            <x>0</x>
            <y>0</y>
            <width>276</width>
-           <height>197</height>
+           <height>134</height>
           </rect>
          </property>
          <layout class="QVBoxLayout" name="verticalLayout_2">
@@ -91,6 +91,11 @@
           <horstretch>0</horstretch>
           <verstretch>0</verstretch>
          </sizepolicy>
+        </property>
+       </widget>
+       <widget class="QListWidget" name="listWidgetChannel">
+        <property name="selectionMode">
+         <enum>QAbstractItemView::ExtendedSelection</enum>
         </property>
        </widget>
       </widget>
@@ -293,5 +298,24 @@
     </hint>
    </hints>
   </connection>
+  <connection>
+   <sender>listWidgetChannel</sender>
+   <signal>itemSelectionChanged()</signal>
+   <receiver>MainWindow</receiver>
+   <slot>testSlot()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>82</x>
+     <y>348</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>730</x>
+     <y>351</y>
+    </hint>
+   </hints>
+  </connection>
  </connections>
+ <slots>
+  <slot>testSlot()</slot>
+ </slots>
 </ui>

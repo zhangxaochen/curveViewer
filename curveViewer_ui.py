@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'curveViewer.ui'
 #
-# Created: Mon Oct 14 16:27:03 2013
+# Created: Sat Nov  2 23:22:07 2013
 #      by: PyQt4 UI code generator 4.10
 #
 # WARNING! All changes made in this file will be lost!
@@ -41,7 +41,7 @@ class Ui_MainWindow(object):
         self.scrollArea_2.setWidgetResizable(True)
         self.scrollArea_2.setObjectName(_fromUtf8("scrollArea_2"))
         self.scrollAreaWidgetContents = QtGui.QWidget()
-        self.scrollAreaWidgetContents.setGeometry(QtCore.QRect(0, 0, 276, 197))
+        self.scrollAreaWidgetContents.setGeometry(QtCore.QRect(0, 0, 276, 134))
         self.scrollAreaWidgetContents.setObjectName(_fromUtf8("scrollAreaWidgetContents"))
         self.verticalLayout_2 = QtGui.QVBoxLayout(self.scrollAreaWidgetContents)
         self.verticalLayout_2.setObjectName(_fromUtf8("verticalLayout_2"))
@@ -81,6 +81,9 @@ class Ui_MainWindow(object):
         sizePolicy.setHeightForWidth(self.listWidgetNode.sizePolicy().hasHeightForWidth())
         self.listWidgetNode.setSizePolicy(sizePolicy)
         self.listWidgetNode.setObjectName(_fromUtf8("listWidgetNode"))
+        self.listWidgetChannel = QtGui.QListWidget(self.splitter)
+        self.listWidgetChannel.setSelectionMode(QtGui.QAbstractItemView.ExtendedSelection)
+        self.listWidgetChannel.setObjectName(_fromUtf8("listWidgetChannel"))
         self.scrollArea = QtGui.QScrollArea(self.splitter_2)
         sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Expanding)
         sizePolicy.setHorizontalStretch(1)
@@ -151,6 +154,7 @@ class Ui_MainWindow(object):
 
         self.retranslateUi(MainWindow)
         QtCore.QObject.connect(self.actionExit, QtCore.SIGNAL(_fromUtf8("triggered()")), MainWindow.close)
+        QtCore.QObject.connect(self.listWidgetChannel, QtCore.SIGNAL(_fromUtf8("itemSelectionChanged()")), MainWindow.testSlot)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
 
     def retranslateUi(self, MainWindow):
