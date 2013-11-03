@@ -5,6 +5,26 @@ Created on May 21, 2013
 @author: zhangxaochen
 '''
 import math
+import scipy
+from scipy import signal
+
+class LPF:
+	# newCurVal=p*oldVal+(1-p)*curVal
+	def myLpf(self, data, p):
+		res=[]
+		for i, v in enumerate(data):
+			if i==0:
+				res.append(v)
+			else:
+				res.append(data[i-1]*p+v*(1-p))
+		return res
+	
+	#http://stackoverflow.com/questions/17833119/lowpass-filter-in-python
+	def lpfScipy(self, data, numtaps=10, cutoff=40, nyq=800):
+		h=scipy.signal.firwin(numtaps=numtaps, cutoff=cutoff, nyq=nyq)
+		return scipy.signal.lfilter(h, 1.0, data)
+		pass
+	pass
 
 class Utils:
 	@staticmethod

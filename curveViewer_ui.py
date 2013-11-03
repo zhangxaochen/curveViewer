@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'curveViewer.ui'
 #
-# Created: Sat Nov  2 23:22:07 2013
+# Created: Sun Nov  3 13:20:09 2013
 #      by: PyQt4 UI code generator 4.10
 #
 # WARNING! All changes made in this file will be lost!
@@ -118,7 +118,7 @@ class Ui_MainWindow(object):
         self.actionSave.setObjectName(_fromUtf8("actionSave"))
         self.actionAccBodyFrame = QtGui.QAction(MainWindow)
         self.actionAccBodyFrame.setCheckable(True)
-        self.actionAccBodyFrame.setChecked(True)
+        self.actionAccBodyFrame.setChecked(False)
         self.actionAccBodyFrame.setObjectName(_fromUtf8("actionAccBodyFrame"))
         self.actionAccWorldFrame = QtGui.QAction(MainWindow)
         self.actionAccWorldFrame.setCheckable(True)

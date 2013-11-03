@@ -13,7 +13,7 @@ from glob import glob
 import os, sys, random, time
 from lxml import etree
 import traceback
-from utils import Utils, Keys
+from utils import Utils, Keys, LPF
 import math
 import numpy as np
 
@@ -21,6 +21,9 @@ import numpy as np
 from curveViewer_ui import *
 
 class MyWindow(QMainWindow):
+	#标记 canvas 是否 plot 过：
+	emptyCanvas=True
+	
 	#空壳
 	class DataObj:
 		pass
@@ -28,31 +31,14 @@ class MyWindow(QMainWindow):
 	#k: 当前加载的文件名；	v: DataObj， 挂靠了 xmlDic, accX,Y,Z, ....
 	fileDict={}
 	
-	channelsToShow=[
-		#0
-		'AxBF',
-		'AyBF',
-		'AzBF',
-		'AxyzBF',
-		
-		#4
-		'AxWF',
-		'AyWF',
-		'AzWF',
-		'AxyWF',
-		
-		#8
-		'Vx',
-		'Vy',
-		'Vz',
-		'Vxy',
-		
-		#12
-		'GxBF',
-		'GyBF',
-		'GzBF',
-		]
+	accBfKeys=['AxBF', 'AyBF', 'AzBF', 'AxyzBF', 'AxyzBF_LPF']
+	accWfKeys=['AxWF', 'AyWF', 'AzWF', 'AxyWF', 'AzWF_LPF']
+	velKeys=['Vx', 'Vy', 'Vz', 'Vxy', ]
+	gyroKeys=['GxBF', 'GyBF', 'GzBF', ]
+	disKeys=['Displacement']
 	
+	channelsToShow=accBfKeys+accWfKeys+velKeys+gyroKeys+disKeys
+
 	#channelsToShow 改成 dict
 	channelDict={}
 	for i, k in enumerate(channelsToShow):
@@ -69,16 +55,34 @@ class MyWindow(QMainWindow):
 		self.canvas=self.ui.mplWidget.canvas
 		self.canvas.resetAxis()
 		
+		#??
 		self.fileItemMarkBg=Qt.green
-		self.nodeItemMarkBg=Qt.yellow
+		# self.nodeItemMarkBg=Qt.yellow
 		
 		#??
 		# self.canvas.draw()
 		
 		self.ui.listWidgetChannel.addItems(self.channelsToShow)
+		
+		#默认显示 accBF
+		self.ui.actionAccBodyFrame.trigger()
+		#隐藏 listWidgetNode
+		self.ui.listWidgetNode.hide()
+		
+		#===================================信号槽
+		self.canvas.areaSelected.connect(self.onAxisAreaSelected)
+		
 		pass
 		
-	
+	def onAxisAreaSelected(self, lrTuple):
+		print('onAxisAreaSelected', lrTuple)
+		
+		curFileItem=self.ui.listWidgetFile.currentItem()
+		obj=self.fileDict[curFileItem.text()]
+		if not hasattr(obj, 'rectLR'):
+			obj.rectLR=lrTuple
+			self.ui.listWidgetFile.currentItem().setBackgroundColor(self.fileItemMarkBg)
+		
 	def plotCurves(self, fname):
 		self.canvas.resetAxis(fname)
 		ax=self.canvas.ax
@@ -99,7 +103,14 @@ class MyWindow(QMainWindow):
 			t=str(ci.text())
 			idx=self.channelDict[t]
 			self.plotByIndex(fname, idx)
-
+		
+		#绘制鼠标选定的区域
+		if hasattr(obj, 'rectLR'):
+			rectLR=obj.rectLR
+			# if rectLR:
+			self.canvas.drawRectArea(rectLR[0], rectLR[1])
+			# self.ui.listWidgetFile.currentItem().setBackgroundColor(self.fileItemMarkBg)
+		
 		if self.ui.actionLegend.isChecked() and len(channelItems) !=0:
 			ax.legend()
 		self.canvas.draw()
@@ -107,6 +118,8 @@ class MyWindow(QMainWindow):
 		
 	def plotByIndex(self, fname, idx):
 		# print('plotByIndex, idx:', idx)
+		self.emptyCanvas=False
+		
 		ax=self.canvas.ax
 		obj=self.fileDict[fname]
 		dic=obj.xmlDic
@@ -120,13 +133,22 @@ class MyWindow(QMainWindow):
 		
 		if not hasattr(obj, 'accXYZ'):
 			obj.accXYZ=(accX**2+accY**2+accZ**2)**0.5
+		if not hasattr(obj, 'accXYZ_LPF'):
+			lpf=LPF()
+			obj.accXYZ_LPF=lpf.lpfScipy(obj.accXYZ)
 		if not hasattr(obj, 'accWF'):
 			obj.accWF=self.getAccWF(dic)
+		if not hasattr(obj, 'azWF_LPF'):
+			lpf=LPF()
+			obj.azWF_LPF=lpf.lpfScipy(obj.accWF[2])
 		if not hasattr(obj, 'vWF'):
 			# tsList=dic[Keys.kTs] if dic.get(Keys.kTs) != None else dic[Keys.kTimestamp]
 			tsList=obj.tsList
 			obj.vWF=self.getVWF(obj.accWF, tsList)
-		
+		#displacement	位移：
+		if not hasattr(obj, 'dWF'):
+			obj.dWF=self.getDWF(obj.vWF, tsList)
+			
 		#-----------------plot
 		#AccBF
 		if idx==self.channelDict['AxBF']:
@@ -137,6 +159,8 @@ class MyWindow(QMainWindow):
 			ax.plot(accZ, 'b', label='AzBF')
 		elif idx==self.channelDict['AxyzBF']:
 			ax.plot(obj.accXYZ, 'm', label='AxyzBF')
+		elif idx==self.channelDict['AxyzBF_LPF']:
+			ax.plot(obj.accXYZ_LPF, 'c', label='AxyzBF_LPF', lw=2)
 		#AccWF
 		elif idx==self.channelDict['AxWF']:
 			ax.plot(obj.accWF[0], 'r', label='AxWF', ls='--', lw=2)
@@ -146,6 +170,8 @@ class MyWindow(QMainWindow):
 			ax.plot(obj.accWF[2], 'b', label='AzWF', ls='--', lw=2)
 		elif idx==self.channelDict['AxyWF']:
 			ax.plot(obj.accWF[3], 'm', label='AxyWF', ls='--', lw=2)
+		elif idx==self.channelDict['AzWF_LPF']:
+			ax.plot(obj.azWF_LPF, 'c', label='AzWF_LPF', ls='--', lw=2)
 		#vWF
 		elif idx==self.channelDict['Vx']:
 			ax.plot(obj.vWF[0], 'r', label='Vx', lw=2)
@@ -163,7 +189,24 @@ class MyWindow(QMainWindow):
 			ax.plot(gy, 'g', label='GyBF')
 		elif idx==self.channelDict['GzBF']:
 			ax.plot(gz, 'b', label='GzBF')
+		
+		#displacement:
+		elif idx==self.channelDict['Displacement']:
+			axd=self.axDis
+			#?? 没重置
 			
+			dx=obj.dWF[0]
+			dy=obj.dWF[1]
+			print 'dx.shape', dx.shape, dy.shape
+			axd.plot(dx, dy, 'm', label='displacement')
+			axd.plot(dx[0], dy[0], 'bo')
+			axd.plot(dx[-1], dy[-1], 'bo')
+			for k, v in {0:'startPoint', -1:'endPoint'}.items():
+				axd.annotate(v, xy=(dx[k], dy[k]), xycoords='data', xytext=(20,-20), textcoords='offset points', 
+				bbox = dict(boxstyle = 'round,pad=0.5', fc = 'yellow', alpha = 0.5),
+				fontsize=12, arrowprops=dict(arrowstyle='->', connectionstyle='arc3, rad=.2'))
+		
+		
 		pass
 	
 	#RETURN np.array([[...][...][...][...]]), arr[3] is AxyWF
@@ -193,13 +236,11 @@ class MyWindow(QMainWindow):
 		return res
 		pass
 	
-	# accWF.shape==(n, 4);	tsList is in epoch seconds
+	# accWF.shape==(4, n);	tsList is in epoch seconds
 	def getVWF(self, accWF, tsList):
 		res=[]
-		#len is n-1
-		# accwfDiff=accWF[1:]-accWF[:-1]
 		
-		accWF=accWF.T
+		# accWF=accWF.T
 		print('accWF.shape:', accWF.shape)
 		sum=np.zeros(3)
 		res.append(sum.copy())
@@ -210,7 +251,22 @@ class MyWindow(QMainWindow):
 				print('=======================dt>1000. dt, i are:', dt, i)
 			dt=tsList[-1]-tsList[-2] if dt>1000 else dt
 			#i 偏小， i+1 偏大； 
-			sum+=accWF[i][:3]*dt/1000
+			# sum+=accWF[i][:3]*dt/1000
+			sum+=accWF[:3, i]*dt/1000
+			res.append(sum.copy())
+		res=np.array(res).T
+		return res
+		pass
+	
+	# vWF.shape==(3, n), tsList is in epoch seconds
+	def getDWF(self, vWF, tsList):
+		res=[]
+		sum=np.zeros(3)
+		res.append(sum.copy())
+		for i in range(len(tsList)-1):
+			dt=tsList[i+1]-tsList[i]
+			dt=tsList[-1]-tsList[-2] if dt>1000 else dt
+			sum+=vWF[:3, i]*dt/1000
 			res.append(sum.copy())
 		res=np.array(res).T
 		return res
@@ -247,14 +303,20 @@ class MyWindow(QMainWindow):
 	
 	@pyqtSlot()
 	def on_listWidgetChannel_itemSelectionChanged(self):
-		print('on_listWidgetChannel_itemSelectionChanged')
+		# print('on_listWidgetChannel_itemSelectionChanged')
+		selectedKeys= set([str(item.text()) for item in self.ui.listWidgetChannel.selectedItems()])
+		
+		self.ui.actionAccBodyFrame.setChecked(selectedKeys >= set(self.accBfKeys) )
+		self.ui.actionAccWorldFrame.setChecked(selectedKeys >= set(self.accWfKeys) )
+		self.ui.actionVelocity.setChecked(selectedKeys >= set(self.velKeys) )
+		self.ui.actionDisplacement.setChecked(selectedKeys >= set(self.disKeys) )
+		self.ui.actionGyro_in_BF.setChecked(selectedKeys >= set(self.gyroKeys) )
+		
 		curFileItem=self.ui.listWidgetFile.currentItem()
-		print( 'curFileItem', curFileItem, id(curFileItem) )
+		# print( 'curFileItem', curFileItem, id(curFileItem) )
 		if curFileItem:
 			self.plotCurves(curFileItem.text())
-		
 		pass
-		
 	
 	@pyqtSlot()
 	def on_actionOpen_triggered(self):
@@ -290,68 +352,63 @@ class MyWindow(QMainWindow):
 	@pyqtSlot()
 	def on_actionSave_triggered(self):
 		print('on_actionSave_triggered')
+		# pathTo=
 		pass
 	
 	@pyqtSlot(bool)
 	def on_actionAccBodyFrame_triggered(self, checked=None):
 		print('on_actionAccBodyFrame_triggered')
-		keys=[
-			'AxBF',
-			'AyBF',
-			'AzBF',
-			'AxyzBF',
-			]
-		self.selectItemsByKeys(keys, checked)
+		self.selectItemsByKeys(self.accBfKeys, checked)
 		pass
 	
 	@pyqtSlot(bool)
 	def on_actionAccWorldFrame_triggered(self, checked):
 		print('on_actionAccWorldFrame_triggered')
-		keys=[
-			'AxWF',
-			'AyWF',
-			'AzWF',
-			'AxyWF',
-			]
-		self.selectItemsByKeys(keys, checked)
-
+		self.selectItemsByKeys(self.accWfKeys, checked)
 		pass
 	
 	@pyqtSlot(bool)
 	def on_actionVelocity_triggered(self, checked):
 		print('on_actionVelocity_triggered')
-		keys=[
-			'Vx',
-			'Vy',
-			'Vz',
-			'Vxy',
-			]
-		self.selectItemsByKeys(keys, checked)
+		self.selectItemsByKeys(self.velKeys, checked)
 		pass
 	
 	@pyqtSlot(bool)
 	def on_actionDisplacement_triggered(self, checked):
 		print('on_actionDisplacement_triggered')
+		self.selectItemsByKeys(self.disKeys, checked)
+		pass
+	
+	#调用链末端：
+	@pyqtSlot(bool)
+	def on_actionDisplacement_toggled(self, checked):
+		print('on_actionDisplacement_toggled')
+		#??
+		self.canvas.fig.delaxes(self.canvas.ax)
+		if checked:
+			self.canvas.ax=self.canvas.fig.add_subplot(211)
+			#ax for displacement
+			self.axDis=self.canvas.fig.add_subplot(234)
+		else:
+			self.canvas.fig.delaxes(self.axDis)
+			self.canvas.ax=self.canvas.fig.add_subplot(111)
+		self.canvas.draw()
 		pass
 	
 	@pyqtSlot(bool)
 	def on_actionGyro_in_BF_triggered(self, checked):
 		print('on_actionGyro_in_BF_triggered')
 		
-		gyroKeys=[
-			'GxBF',
-			'GyBF',
-			'GzBF',
-			]
 		#别用 [12:15]， 因为可能再添别的channel，导致改变索引号：
 		# gyroKeys=self.channelsToShow[12:15]
-		self.selectItemsByKeys(gyroKeys, checked)
-		
+		self.selectItemsByKeys(self.gyroKeys, checked)
 		pass
 	
 	@pyqtSlot(bool)
 	def on_actionLegend_triggered(self, checked):
 		print('on_actionLegend_triggered')
+		if self.emptyCanvas:
+			return
 		leg=self.canvas.ax.legend()
 		if leg != None:
 			leg.set_visible(checked)
