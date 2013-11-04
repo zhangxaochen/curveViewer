@@ -469,7 +469,7 @@ class MyWindow(QMainWindow):
 			labelFile=open(mainFname+'.txt', 'w')
 			# labelFile.write('%f\t%f\n'%(tsList[left]/1000, tsList[right]/1000) )
 			
-			#2013年10月28日	threshold 
+			#2013年10月28日	手动标注 threshold 
 			thLabelFile=open(mainFname+'.x', 'a')
 			
 			
@@ -513,6 +513,7 @@ class MyWindow(QMainWindow):
 			absPath=pathTo+os.path.sep+fname
 #			absPathPretty=pathTo+os.path.sep+'pretty-'+fname
 #			newTree.write(absPath, encoding='utf-8', pretty_print=True, xml_declaration=True)
+			# #会把乱码转为正常：
 			tree.write(absPath, encoding='utf-8', pretty_print=True, xml_declaration=True)
 #			file=open(absPathPretty, 'w')
 ##			prettyxml=minidom.parseString(etree.tostring(element=newRoot, encoding='utf-8')).toprettyxml()	#shit minidom

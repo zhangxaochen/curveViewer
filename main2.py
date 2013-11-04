@@ -21,6 +21,9 @@ import numpy as np
 from curveViewer_ui import *
 
 class MyWindow(QMainWindow):
+	#全局
+	psr = etree.XMLParser(remove_blank_text=True)
+	
 	#标记 canvas 是否 plot 过：
 	emptyCanvas=True
 	
@@ -78,7 +81,7 @@ class MyWindow(QMainWindow):
 		print('onAxisAreaSelected', lrTuple)
 		
 		curFileItem=self.ui.listWidgetFile.currentItem()
-		obj=self.fileDict[curFileItem.text()]
+		obj=self.fileDict[str(curFileItem.text())]
 		if not hasattr(obj, 'rectLR'):
 			obj.rectLR=lrTuple
 			self.ui.listWidgetFile.currentItem().setBackgroundColor(self.fileItemMarkBg)
@@ -278,7 +281,8 @@ class MyWindow(QMainWindow):
 		# print('on_listWidgetFile_currentItemChanged', id(item), prev)
 		if not item:
 			return 
-		baseName=item.text()
+		baseName=str(item.text())
+		# print 'baseName', baseName, type(baseName)
 		absPath=os.path.realpath(baseName)
 		st=time.time()
 		# if not hasattr(item, 'xmlDic'):
@@ -315,7 +319,7 @@ class MyWindow(QMainWindow):
 		curFileItem=self.ui.listWidgetFile.currentItem()
 		# print( 'curFileItem', curFileItem, id(curFileItem) )
 		if curFileItem:
-			self.plotCurves(curFileItem.text())
+			self.plotCurves(str(curFileItem.text()))
 		pass
 	
 	@pyqtSlot()
@@ -351,8 +355,57 @@ class MyWindow(QMainWindow):
 	
 	@pyqtSlot()
 	def on_actionSave_triggered(self):
-		print('on_actionSave_triggered')
-		# pathTo=
+		print('on_actionSave_triggered+++++++++')
+		pathTo='./segmented'
+		if not os.path.exists(pathTo):
+			os.makedirs(pathTo)
+		fileSelectedList=self.ui.listWidgetFile.selectedItems()
+		#转成 str list
+		# fileSelectedList=[str(f.text()) for f in fileSelectedList]
+		
+		if len(fileSelectedList) is 0:
+			self.ui.statusbar.showMessage('No file item selected!!!')
+			return
+		
+		for fileItem in fileSelectedList:
+			fname=str(fileItem.text())
+			obj=self.fileDict[fname]
+			#检查选中的 fileItem 是否都分割过了	
+			if not hasattr(obj, 'rectLR'):
+				msg='selected file "%s" not finished segmentation'%fileItem.text()
+				print(msg)
+				self.ui.statusbar.showMessage(msg)
+				return
+			
+			# mainFname=os.path.splitext(fname)[0]
+			
+			#=================分割， 存到 segmented：
+			tree=etree.parse(fname, parser=self.psr)
+			rt=tree.getroot()
+			nodeNode=rt[0][0]
+			left, right=obj.rectLR
+			
+			#先从右边移除：
+			for data in nodeNode[right:]:
+				nodeNode.remove(data)
+			for data in nodeNode[:left]:
+				nodeNode.remove(data)
+			absPath=os.path.join(pathTo, fname)
+			#会把乱码转为正常：
+			# tree.write(absPath, encoding='utf-8', pretty_print=True, xml_declaration=True)
+			
+			#为避免 tree.write 再把乱码转为汉字， 直接用 file.write：
+			xmlStr=etree.tostring(tree, pretty_print=True, xml_declaration=True, encoding='utf-8').decode()
+			# ff=open(absPath, 'w')
+			with open(absPath, 'w') as ff:
+				ff.write(xmlStr)
+			# ff.close()
+			
+		
+		
+		
+		
+		
 		pass
 	
 	@pyqtSlot(bool)
@@ -427,8 +480,8 @@ class MyWindow(QMainWindow):
 			print('if not os.path.exists(fname)')
 			return
 		
-		psr = etree.XMLParser(remove_blank_text=True)
-		tree=etree.parse(fname, psr)
+		
+		tree=etree.parse(fname, self.psr)
 		rt=tree.getroot()
 		#旧格式
 		if rt.tag==Keys.kRoot:
