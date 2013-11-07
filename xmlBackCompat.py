@@ -101,7 +101,7 @@ def main():
 			# assert False	#还没实现
 			begTiming=time.time()
 			tree=getNewStyleElementTree(interpData)
-			print('[[[getOldStyleElementTree() takes: %f'%(time.time()-begTiming))
+			print('[[[getNewStyleElementTree() takes: %f'%(time.time()-begTiming))
 		else:
 			print('Holy shit! What happened?? ')
 			
