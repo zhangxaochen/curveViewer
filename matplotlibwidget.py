@@ -87,7 +87,7 @@ class MplCanvas(FigureCanvasQTAgg):
 		if not (self.startX and e.inaxes is self.ax and self.ctrlPressed):
 			#若没 press过， 或鼠标移出范围
 			return
-#		print('on_motion')
+		# print('on_motion, self.ctrlPressed', self.ctrlPressed)
 		curX=int(round(e.xdata))
 		
 #		if self.prevX is None or self.prevX is not curX:

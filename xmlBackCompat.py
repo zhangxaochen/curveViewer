@@ -36,8 +36,8 @@ from pylab import *
 from utils import Keys
 
 
-oldRootTag='CaptureSession'
-newRootTag='session'
+oldRootTag=Keys.kRoot
+newRootTag=Keys.kSession
 
 strOld='old'
 strNew='new'
@@ -86,6 +86,7 @@ def main():
 
 		begTiming=time.time()
 		data=loadFile(fname)
+		# print('data,', data)
 		print('[[[loadFile() takes: %f'%(time.time()-begTiming))
 		
 		#-----------------interpData shape is {t:[], a:[ array([...]),[],[] ], g:[ [],[],[] ], m.. r.. }
@@ -243,25 +244,63 @@ def getNewStyleElementTree(interpData):
 	tree=etree.ElementTree(root)
 	return tree
 	
-def loadFile(fname):
+def loadOldXmlTree(root):
 	'''
-	PARAMS
-		fname: xml file name
-	RETURN 
-		data:  shape is {Keys.kA:np.ndarray([[t, x,y,z], ..., [t, x,y,z]], Keys.kG:...,  Keys.kM:...,  Keys.kR:...}
+		PARAMS
+			root: root of the xml tree
+		RETURN 
+			data:  shape is {Keys.kA:np.ndarray([[t, x,y,z], ..., [t, x,y,z]], Keys.kG:...,  Keys.kM:...,  Keys.kR:...}, t is in seconds
 	'''
-	psr=etree.XMLParser(remove_blank_text=True)
-	tree=etree.parse(fname, parser=psr, )
-	root=tree.getroot()
-	#print(root.tag, root.tag is oldRootTag, type(root.tag))
-	print(root.tag)
-	if root.tag == oldRootTag :
-		print('++++++++old style xml (CaptureSession)')
-		return
-	if root.tag != newRootTag :
-		print('-----------probably wrong xml folder')
-		return
+
+	#对手机传感器只有一个node：
+	nodeNode=root[0][0]
+	dic={}
+	for dataNode in nodeNode:
+		for k, v in dataNode.attrib.items():
+			if not dic.get(k):
+				dic[k]=[]
+			dic[k].append(v)
+	for k, v in dic.items():
+		dic[k]=np.array([float(val) for val in v])
+		
+	res={}
+	res[Keys.kA]=[]
+	res[Keys.kG]=[]
+	res[Keys.kM]=[]
+	res[Keys.kR]=[]
 	
+	ts=[t/1000. for t in dic[Keys.kTs] ]
+	ax=dic[Keys.kAx]
+	ay=dic[Keys.kAy]
+	az=dic[Keys.kAz]
+	res[Keys.kA]=np.array([ts,ax, ay, az]).T
+	
+	gx=dic[Keys.kGx]
+	gy=dic[Keys.kGy]
+	gz=dic[Keys.kGz]
+	res[Keys.kG]=np.array([ts, gx, gy, gz]).T
+	
+	mx=dic[Keys.kMx]
+	my=dic[Keys.kMy]
+	mz=dic[Keys.kMz]
+	res[Keys.kM]=np.array([ts, mx, my, mz]).T
+	
+	rx=dic[Keys.kRx]
+	ry=dic[Keys.kRy]
+	rz=dic[Keys.kRz]
+	rw=dic[Keys.kRw]
+	res[Keys.kR]=np.array([ts, rx, ry, rz, rw]).T
+	
+	return res
+	pass
+
+def loadNewXmlTree(root):
+	'''
+		PARAMS
+			root: root of the xml tree
+		RETURN 
+			data:  shape is {Keys.kA:np.ndarray([[t, x,y,z], ..., [t, x,y,z]], Keys.kG:...,  Keys.kM:...,  Keys.kR:...}
+	'''
 	threadList=root.find(Keys.kThreads).findall(Keys.kThread)
 	#========手机只算一个节点
 	assert len(threadList) is 1
@@ -301,6 +340,31 @@ def loadFile(fname):
 			# data[cname]=np.array(valList)	#×, 低效， 应在循环外
 		data[cname]=np.array(valList)
 	return data
+	pass
+	
+def loadFile(fname):
+	'''
+	PARAMS
+		fname: xml file name
+	RETURN 
+		data:  shape is {Keys.kA:np.ndarray([[t, x,y,z], ..., [t, x,y,z]], Keys.kG:...,  Keys.kM:...,  Keys.kR:...}
+	'''
+	psr=etree.XMLParser(remove_blank_text=True)
+	tree=etree.parse(fname, parser=psr, )
+	root=tree.getroot()
+	#print(root.tag, root.tag is oldRootTag, type(root.tag))
+	print(root.tag)
+	if root.tag == oldRootTag :
+		print('++++++++old style xml (CaptureSession)')
+		data=loadOldXmlTree(root)
+		return data
+	elif root.tag == newRootTag :
+		data=loadNewXmlTree(root)
+		return data
+	else:
+	# if root.tag != newRootTag :
+		assert False, '-----------probably wrong xml folder'
+	
 
 def getInterpData(data):
 	'''
@@ -323,6 +387,7 @@ def getInterpData(data):
 		for i in range(1, 4):
 			#插值前时间戳&数据：
 			oldTime=v[:, 0]
+			# print('oldTime, newTimeList:', oldTime[-1], newTimeList[-1])
 			# print('oldTime:', oldTime.shape, data[Keys.kA].shape)
 			oldData=v[:, i]
 			#print('oldData:', oldData)

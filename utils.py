@@ -7,6 +7,7 @@ Created on May 21, 2013
 import math
 import scipy
 from scipy import signal
+import numpy as np
 
 class LPF:
 	# newCurVal=p*oldVal+(1-p)*curVal
@@ -25,8 +26,69 @@ class LPF:
 		return scipy.signal.lfilter(h, 1.0, data)
 		pass
 	pass
+	
+	# http://upload.wikimedia.org/math/b/9/5/b95a89c2b2957b11c2ba624680c8ffe1.png
+	# http://en.wikipedia.org/wiki/Finite_impulse_response
+	# zh.wikipedia.org/zh-cn/有限脉冲响应
+	def lpfTest(self, data, numtaps=10, cutoff=40, nyq=800):
+		h=scipy.signal.firwin(numtaps=numtaps, cutoff=cutoff, nyq=nyq)
+		
+		N=len(h)
+		res=[]
+		for n, v in enumerate(data):
+			y=0
+			for i in range(N):
+				if n<i:
+					break
+				y+=h[i]*data[n-i]
+			res.append(y)
+		return np.asanyarray(res)
+		pass
+		
+	#开始 numtaps 一段不要太低
+	def lpfTest2(self, data, numtaps=10, cutoff=40, nyq=800):
+		res=self.lpfTest(data, numtaps, cutoff, nyq)
+		# res[:numtaps]=[data[:i]/(i+1) for i in range(numtaps)]
+		res[:numtaps]=[mean(data[:i]) for i in range(numtaps)]
+		return res
+		pass
+	
+	def lpfButter(self, data, N=8, Wn=0.125):
+		b, a=signal.butter(N, Wn)
+		y=signal.filtfilt(b, a, data, )
+		return y
 
 class Utils:
+	@staticmethod
+	# 当前点向前数 numtaps 个
+	# RETURN ndarray
+	def getVarPrev(data, numtaps):
+		res=[]
+		for i in range(len(data)):
+			if i<numtaps-1:
+				v=0
+			else:
+				v=np.var(data[i-(numtaps-1):i])
+			res.append(v)
+		return np.asanyarray(res)
+		pass
+
+	@staticmethod
+	# 当前点前后数 numtaps/2 个
+	# RETURN ndarray
+	def getVarMid(data, numtaps):
+		res=[]
+		winsz=numtaps if numtaps%2==1 else numtaps-1
+		halfWin=round(numtaps/2.)
+		for i in range(len(data)):
+			if i<halfWin-1 or i>len(data)-halfWin:
+				v=0
+			else:
+				v=np.var(data[i-(halfWin-1): i+(halfWin-1)])
+			res.append(v)
+		return np.asanyarray(res)
+		pass
+	
 	@staticmethod
 	def multiplyMV3(mat, vector):
 		assert len(mat)==9 and len(vector)==3
