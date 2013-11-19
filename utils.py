@@ -10,18 +10,21 @@ from scipy import signal
 import numpy as np
 
 class LPF:
+	
+	WINSZ=10
+	
 	# newCurVal=p*oldVal+(1-p)*curVal
-	def myLpf(self, data, p):
-		res=[]
-		for i, v in enumerate(data):
-			if i==0:
-				res.append(v)
-			else:
-				res.append(data[i-1]*p+v*(1-p))
-		return res
+	# def myLpf(self, data, p):
+		# res=[]
+		# for i, v in enumerate(data):
+			# if i==0:
+				# res.append(v)
+			# else:
+				# res.append(data[i-1]*p+v*(1-p))
+		# return res
 	
 	#http://stackoverflow.com/questions/17833119/lowpass-filter-in-python
-	def lpfScipy(self, data, numtaps=10, cutoff=40, nyq=800):
+	def lpfScipy(self, data, numtaps=WINSZ, cutoff=40, nyq=800):
 		h=scipy.signal.firwin(numtaps=numtaps, cutoff=cutoff, nyq=nyq)
 		return scipy.signal.lfilter(h, 1.0, data)
 		pass
@@ -30,7 +33,10 @@ class LPF:
 	# http://upload.wikimedia.org/math/b/9/5/b95a89c2b2957b11c2ba624680c8ffe1.png
 	# http://en.wikipedia.org/wiki/Finite_impulse_response
 	# zh.wikipedia.org/zh-cn/有限脉冲响应
-	def lpfTest(self, data, numtaps=10, cutoff=40, nyq=800):
+	def lpfMine(self, data, numtaps=WINSZ, cutoff=40, nyq=800):
+		'''
+		手写lpf，同 lpfScipy 一样
+		'''
 		h=scipy.signal.firwin(numtaps=numtaps, cutoff=cutoff, nyq=nyq)
 		
 		N=len(h)
@@ -46,13 +52,14 @@ class LPF:
 		pass
 		
 	#开始 numtaps 一段不要太低
-	def lpfTest2(self, data, numtaps=10, cutoff=40, nyq=800):
-		res=self.lpfTest(data, numtaps, cutoff, nyq)
+	def lpfTest(self, data, numtaps=WINSZ, cutoff=40, nyq=800):
+		res=self.lpfScipy(data, numtaps, cutoff, nyq)
 		# res[:numtaps]=[data[:i]/(i+1) for i in range(numtaps)]
-		res[:numtaps]=[mean(data[:i]) for i in range(numtaps)]
+		res[:numtaps-1]=[np.mean(data[:i+1]) for i in range(numtaps-1)]
 		return res
 		pass
 	
+	#感觉不好
 	def lpfButter(self, data, N=8, Wn=0.125):
 		b, a=signal.butter(N, Wn)
 		y=signal.filtfilt(b, a, data, )
@@ -60,18 +67,64 @@ class LPF:
 
 class Utils:
 	@staticmethod
-	# 当前点向前数 numtaps 个
+	# 当前点向前数 numtaps 个，逐帧求var
 	# RETURN ndarray
 	def getVarPrev(data, numtaps):
 		res=[]
 		for i in range(len(data)):
 			if i<numtaps-1:
-				v=0
+				# v=0
+				v=np.var(data[:i+1])
 			else:
 				v=np.var(data[i-(numtaps-1):i])
 			res.append(v)
 		return np.asanyarray(res)
 		pass
+		
+	@staticmethod
+	# 当前点向前数 numtaps 个， 分段求var，返回阶梯序列
+	# RETURN ndarray
+	def getVarPrevStep(data, numtaps):
+		assert type(numtaps)==int and numtaps>0, 'type(numtaps)==int and numtaps>0'
+		res=[]
+		buf=[]
+		for i,v in enumerate(data):
+			buf.append(v)
+			if len(buf)==numtaps:
+				va=np.var(buf)
+				res.extend([va]*numtaps)
+				del buf[:]
+		return np.asanyarray(res)
+		pass
+		
+	@staticmethod
+	def maxMinVar(buf):
+		max=min=buf[0]
+		for v in buf:
+			if v>max:
+				max=v
+			elif v<min:
+				min=v
+		return np.var([max, min])
+		pass
+
+	@staticmethod
+	#当前点向前 numtaps区间内 max-min 的var，返回阶梯序列
+	def getMmvarPrev(data, numtaps):
+		assert type(numtaps)==int and numtaps>0, 'type(numtaps)==int and numtaps>0'
+			
+		res=[]
+		buf=[]
+		for i,v in enumerate(data):
+			buf.append(v)
+			if len(buf)==numtaps:
+				va=Utils.maxMinVar(buf)
+				res.extend([va]*numtaps)
+				del buf[:]
+		return np.asanyarray(res)
+		pass
+		
+
 
 	@staticmethod
 	# 当前点前后数 numtaps/2 个
@@ -90,7 +143,7 @@ class Utils:
 		pass
 	
 	@staticmethod
-	def multiplyMV3(mat, vector):
+	def preMultiplyMV3(mat, vector):
 		assert len(mat)==9 and len(vector)==3
 		#防止list都是字符串list：
 		mat=list(map(float, mat))
@@ -103,6 +156,20 @@ class Utils:
 			
 		return res
 	
+	@staticmethod
+	def postMultiplyMV3(vector, mat):
+		assert len(mat)==9 and len(vector)==3
+		#防止list都是字符串list：
+		mat=list(map(float, mat))
+		vector=list(map(float, vector))
+		
+		res=[]
+		for i in range(3):
+			# idx=3*i
+			res.append(vector[0] * mat[i]+ vector[1] * mat[i+3]+ vector[2] * mat[i+6])
+			
+		return res
+
 	@staticmethod
 	def getRotationMatrixFromVector(rotationVector):
 		'''reference: SensorManager.class & RotationMatrixView.java

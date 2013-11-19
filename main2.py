@@ -82,9 +82,9 @@ class MyWindow(QMainWindow):
 		
 		curFileItem=self.ui.listWidgetFile.currentItem()
 		obj=self.fileDict[str(curFileItem.text())]
-		if not hasattr(obj, 'rectLR'):
-			obj.rectLR=lrTuple
-			self.ui.listWidgetFile.currentItem().setBackgroundColor(self.fileItemMarkBg)
+		# if not hasattr(obj, 'rectLR'):
+		obj.rectLR=lrTuple
+		self.ui.listWidgetFile.currentItem().setBackgroundColor(self.fileItemMarkBg)
 		
 	def plotCurves(self, fname):
 		self.canvas.resetAxis(fname)
@@ -138,12 +138,14 @@ class MyWindow(QMainWindow):
 			obj.accXYZ=(accX**2+accY**2+accZ**2)**0.5
 		if not hasattr(obj, 'accXYZ_LPF'):
 			lpf=LPF()
-			obj.accXYZ_LPF=lpf.lpfScipy(obj.accXYZ)
+			#obj.accXYZ_LPF=lpf.lpfScipy(obj.accXYZ)
+			obj.accXYZ_LPF=lpf.lpfTest(obj.accXYZ)
 		if not hasattr(obj, 'accWF'):
 			obj.accWF=self.getAccWF(dic)
 		if not hasattr(obj, 'azWF_LPF'):
 			lpf=LPF()
-			obj.azWF_LPF=lpf.lpfScipy(obj.accWF[2])
+			#obj.azWF_LPF=lpf.lpfScipy(obj.accWF[2])
+			obj.azWF_LPF=lpf.lpfTest(obj.accWF[2])
 		if not hasattr(obj, 'vWF'):
 			# tsList=dic[Keys.kTs] if dic.get(Keys.kTs) != None else dic[Keys.kTimestamp]
 			tsList=obj.tsList
@@ -229,7 +231,13 @@ class MyWindow(QMainWindow):
 				dic[Keys.kAz][i]
 				]
 			rotationMatrix=Utils.getRotationMatrixFromVector(rotationVector)
-			accWfVector=Utils.multiplyMV3(rotationMatrix, accVector)
+			# if i<2:
+				# print rotationMatrix
+			accWfVector=Utils.preMultiplyMV3(rotationMatrix, accVector)
+			# accWfVector=Utils.postMultiplyMV3(accVector, rotationMatrix)
+			if i<2:
+				print 'accWfVector, rotationMatrix, accVector:', accWfVector, rotationMatrix, accVector
+				# print accWfVector[0]
 			#AxyWF:
 			t=accWfVector
 			t.append((t[0]**2+t[1]**2)**0.5)
