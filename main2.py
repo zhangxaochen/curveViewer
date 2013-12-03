@@ -214,7 +214,7 @@ class MyWindow(QMainWindow):
 			
 			dx=obj.dWF[0]
 			dy=obj.dWF[1]
-			print 'dx.shape', dx.shape, dy.shape
+			print ('dx.shape', dx.shape, dy.shape)
 			axd.plot(dx, dy, 'm', label='displacement')
 			axd.plot(dx[0], dy[0], 'bo')
 			axd.plot(dx[-1], dy[-1], 'bo')
@@ -248,7 +248,7 @@ class MyWindow(QMainWindow):
 			accWfVector=Utils.preMultiplyMV3(rotationMatrix, accVector)
 			# accWfVector=Utils.postMultiplyMV3(accVector, rotationMatrix)
 			if i<2:
-				print 'accWfVector, rotationMatrix, accVector:', accWfVector, rotationMatrix, accVector
+				print('accWfVector, rotationMatrix, accVector:', accWfVector, rotationMatrix, accVector)
 				# print accWfVector[0]
 			#AxyWF:
 			t=accWfVector

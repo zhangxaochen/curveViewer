@@ -1,3 +1,4 @@
 echo %cd%
-python main.py
+REM python main.py
+python main2.py
 pause
