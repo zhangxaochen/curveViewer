@@ -37,7 +37,7 @@ class MyWindow(QMainWindow):
 	accBfKeys=['AxBF', 'AyBF', 'AzBF', 'AxyzBF', 'AxyzBF_LPF']
 	accWfKeys=['AxWF', 'AyWF', 'AzWF', 'AxyWF', 'AzWF_LPF']
 	velKeys=['Vx', 'Vy', 'Vz', 'Vxy', ]
-	gyroKeys=['GxBF', 'GyBF', 'GzBF', ]
+	gyroKeys=['GxBF', 'GyBF', 'GzBF', 'GxyzBF', 'GxyzBF_LPF']
 	disKeys=['Displacement']
 	
 	channelsToShow=accBfKeys+accWfKeys+velKeys+gyroKeys+disKeys
@@ -134,6 +134,7 @@ class MyWindow(QMainWindow):
 		gy=dic[Keys.kGy]
 		gz=dic[Keys.kGz]
 		
+		#机身合加速度
 		if not hasattr(obj, 'accXYZ'):
 			obj.accXYZ=(accX**2+accY**2+accZ**2)**0.5
 		if not hasattr(obj, 'accXYZ_LPF'):
@@ -153,6 +154,13 @@ class MyWindow(QMainWindow):
 		#displacement	位移：
 		if not hasattr(obj, 'dWF'):
 			obj.dWF=self.getDWF(obj.vWF, tsList)
+		#机身gyro和值
+		if not hasattr(obj, 'gxyz'):
+			obj.gxyz=(gx**2+gy**2+gz**2)**0.5
+		if not hasattr(obj, 'gxyz_lpf'):
+			lpf=LPF()
+			obj.gxyz_lpf=lpf.lpfTest(obj.gxyz)
+		
 			
 		#-----------------plot
 		#AccBF
@@ -194,6 +202,10 @@ class MyWindow(QMainWindow):
 			ax.plot(gy, 'g', label='GyBF')
 		elif idx==self.channelDict['GzBF']:
 			ax.plot(gz, 'b', label='GzBF')
+		elif idx==self.channelDict['GxyzBF']:
+			ax.plot(obj.gxyz, 'm', label='GxyzBF')
+		elif idx==self.channelDict['GxyzBF_LPF']:
+			ax.plot(obj.gxyz_lpf, 'c', label='GxyzBF_LPF', lw=2)
 		
 		#displacement:
 		elif idx==self.channelDict['Displacement']:

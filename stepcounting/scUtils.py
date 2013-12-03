@@ -73,6 +73,8 @@ def printError(gfname, stepsDic):
 	gtdic=getGroundtruth(gfname)
 	#print gtdic
 	errors=[]
+	gts=[]
+	
 	for k, v in stepsDic.items():
 		eid=k.split('_')[0]
 		if gtdic.get(eid) != None:
@@ -84,5 +86,9 @@ def printError(gfname, stepsDic):
 		if err<99:
 			print '%s\t\t%d\t%d\t%.2f%%'%(k, gtv, v, err)
 			errors.append(err)
-	print "average error:%.2f%%"%average(array(errors))
+			gts.append(gtv)
+	
+	errors=np.asanyarray(errors)
+	gts=np.asanyarray(gts)
+	print "mean error:%.2f%%"%sum(errors*gts/sum(gts))
 	pass

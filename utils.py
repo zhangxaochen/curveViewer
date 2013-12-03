@@ -67,6 +67,15 @@ class LPF:
 
 class Utils:
 	@staticmethod
+	#等价于 h=firwin(...)	√
+	def getHammingWin(n):
+		ham=[0.54-0.46*np.cos(2*np.pi*i/(n-1)) for i in range(n)]
+		ham=np.asanyarray(ham)
+		ham/=ham.sum()
+		return ham
+		pass
+	
+	@staticmethod
 	# 当前点向前数 numtaps 个，逐帧求var
 	# RETURN ndarray
 	def getVarPrev(data, numtaps):
@@ -76,7 +85,7 @@ class Utils:
 				# v=0
 				v=np.var(data[:i+1])
 			else:
-				v=np.var(data[i-(numtaps-1):i])
+				v=np.var(data[i-(numtaps-1):i+1])
 			res.append(v)
 		return np.asanyarray(res)
 		pass
@@ -110,7 +119,7 @@ class Utils:
 
 	@staticmethod
 	#当前点向前 numtaps区间内 max-min 的var，返回阶梯序列
-	def getMmvarPrev(data, numtaps):
+	def getMmvarPrev(data, numtaps=LPF.WINSZ):
 		assert type(numtaps)==int and numtaps>0, 'type(numtaps)==int and numtaps>0'
 			
 		res=[]
@@ -123,9 +132,7 @@ class Utils:
 				del buf[:]
 		return np.asanyarray(res)
 		pass
-		
-
-
+	
 	@staticmethod
 	# 当前点前后数 numtaps/2 个
 	# RETURN ndarray
