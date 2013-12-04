@@ -8,6 +8,7 @@ import math
 import scipy
 from scipy import signal
 import numpy as np
+from stepcounting.thFreq import numtaps
 
 class LPF:
 	
@@ -55,7 +56,8 @@ class LPF:
 	def lpfTest(self, data, numtaps=WINSZ, cutoff=40, nyq=800):
 		res=self.lpfScipy(data, numtaps, cutoff, nyq)
 		# res[:numtaps]=[data[:i]/(i+1) for i in range(numtaps)]
-		res[:numtaps-1]=[np.mean(data[:i+1]) for i in range(numtaps-1)]
+		tmp=numtaps-1 if numtaps-1<len(res) else len(res)
+		res[:tmp]=[np.mean(data[:i+1]) for i in range(tmp)]
 		return res
 		pass
 	

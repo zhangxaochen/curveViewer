@@ -319,7 +319,7 @@ class MyWindow(QMainWindow):
 		lpf=LPF()
 		accXYZ_LPF=lpf.lpfTest(accXYZ)
 		res.append(accXYZ_LPF)
-		print ('-------------res', (res), accXYZ.shape)
+		print ('-------------res', res, accXYZ.shape)
 		shit=np.asanyarray(res)
 		# res=np.array(res)
 		return shit
