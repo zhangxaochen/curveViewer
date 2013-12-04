@@ -319,10 +319,8 @@ class MyWindow(QMainWindow):
 		lpf=LPF()
 		accXYZ_LPF=lpf.lpfTest(accXYZ)
 		res.append(accXYZ_LPF)
-		print ('-------------res', res, accXYZ.shape)
-		shit=np.asanyarray(res)
-		# res=np.array(res)
-		return shit
+		res=np.asanyarray(res)
+		return res
 		pass
 	
 	#RETURN np.array of shape(5, n), arr[3] is AxyWF, [4] is azWF_LPF
@@ -358,10 +356,8 @@ class MyWindow(QMainWindow):
 		# AzWF_LPF:
 		lpf=LPF()
 		azWF_LPF=lpf.lpfTest(res[2])
-		print ('-----------res.shape', res.shape, azWF_LPF.shape, )
-		# res=np.vstack((res, azWF_LPF))
-		shit=np.vstack((res, azWF_LPF))
-		return shit
+		res=np.vstack((res, azWF_LPF))
+		return res
 		pass
 	
 	# accWF.shape==(4, n);	tsList is in epoch seconds

@@ -8,7 +8,6 @@ import math
 import scipy
 from scipy import signal
 import numpy as np
-from stepcounting.thFreq import numtaps
 
 class LPF:
 	
