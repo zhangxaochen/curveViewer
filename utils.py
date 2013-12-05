@@ -442,6 +442,8 @@ def getVWF(accWF, tsList):
 	winsz=30
 	#判定静止阈值：
 	stillTh=0.01
+	
+	#虽然 i 从0开始， 但 res 此时从 1 开始：
 	for i in range(len(tsList)-1):
 		dt=tsList[i+1]-tsList[i]
 		#第一帧时间戳的 bug
@@ -452,8 +454,8 @@ def getVWF(accWF, tsList):
 		# sum+=accWF[i][:3]*dt/1000
 		sum+=accWF[:3, i]*dt/1000
 		#看 axyzWF， 若平稳， 强制校正 v=0：
-		if i>=winsz and (sum!=np.zeros(3)).any() :
-			va=np.var(accWF[5][i-winsz:i])
+		if i+1+winsz<len(tsList) and (sum!=np.zeros(3)).any() :
+			va=np.var(accWF[5][i+1:i+1+winsz])
 			if va<stillTh:
 				sum.fill(0)
 		res.append(sum.copy())
