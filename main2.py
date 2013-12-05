@@ -40,11 +40,15 @@ class MyWindow(QMainWindow):
 	accBfKeys=['AxBF', 'AyBF', 'AzBF', 'AxyzBF', 'AxyzBF_LPF']
 	accWfKeys=['AxWF', 'AyWF', 'AzWF', 'AxyWF', 'AzWF_LPF']
 	velKeys=['Vx', 'Vy', 'Vz', 'Vxy', ]
+	
 	gbfKeys=['GxBF', 'GyBF', 'GzBF', 'GxyzBF', 'GxyzBF_LPF']
 	gwfKeys=['GxWF', 'GyWF', 'GzWF', ]
+	#旋转角：
+	angWfKeys=['AngXWF', 'AngYWF', 'AngZWF', 'AngZWF_lpf']
+	
 	disKeys=['Displacement']
 	
-	channelsToShow=accBfKeys+accWfKeys+velKeys+gbfKeys+gwfKeys+disKeys
+	channelsToShow=accBfKeys+accWfKeys+velKeys+gbfKeys+gwfKeys+angWfKeys+disKeys
 
 	#channelsToShow 改成 dict
 	channelDict={}
@@ -150,6 +154,8 @@ class MyWindow(QMainWindow):
 		#gyroWF x,y,z
 		if not hasattr(obj, 'gyroWF'):
 			obj.gyroWF=self.getGyroWF(dic)
+		if not hasattr(obj, 'angleWF'):
+			obj.angleWF=self.getAngleWF(obj.gyroWF, obj.tsList)
 		
 			
 		#-----------------plot
@@ -162,7 +168,6 @@ class MyWindow(QMainWindow):
 		for i, k in enumerate(self.accWfKeys):
 			if idx==self.channelDict[k]:
 				ax.plot(obj.accWF[i], co[i], label=k, ls='--', lw=2)
-
 		#vWF
 		for i, k in enumerate(self.velKeys):
 			if idx==self.channelDict[k]:
@@ -173,11 +178,14 @@ class MyWindow(QMainWindow):
 			if idx==self.channelDict[k]:
 				lw=1 if i !=4 else 2
 				ax.plot(obj.gyroBF[i], co[i], label=k, lw=lw)
-
 		#gyro in WF:
 		for i, k in enumerate(self.gwfKeys):
 			if idx==self.channelDict[k]:
 				ax.plot(obj.gyroWF[i], co[i], label=k, )
+		#angle in WF:
+		for i, k in enumerate(self.angWfKeys):
+			if idx==self.channelDict[k]:
+				ax.plot(obj.angleWF[i], co[i], label=k)
 		
 		#displacement:
 		if idx==self.channelDict['Displacement']:
@@ -239,7 +247,29 @@ class MyWindow(QMainWindow):
 		res=np.asanyarray(res).T
 		return res
 		pass
+	
+	#gyroWF.shape==(3,n),	tsList is in epoch seconds
+	#RETURN  res of shape(4, n), [3] is angz_lpf
+	def getAngleWF(self, gyroWF, tsList):
+		res=[]
 		
+		sum=np.zeros(3)
+		res.append(sum.copy())
+		for i in range(len(tsList)-1):
+			dt=tsList[i+1]-tsList[i]
+			if dt>1000:
+				print('=======================dt>1000. dt, i are:', dt, i)
+			dt=tsList[-1]-tsList[-2] if dt>1000 else dt
+			#i 偏小， i+1 偏大； 
+			sum+=gyroWF[:3, i]*dt/1000
+			res.append(sum.copy())
+		res=np.asanyarray(res).T
+		lpf=LPF()
+		angz_lpf=lpf.lpfTest(res[2])
+		res=np.vstack((res, angz_lpf))
+		return res
+		pass
+	
 	#RETURN np.array of shape(5,n), [3] is accXYZ, [4] is accXYZ_LPF
 	def getAccBF(self, xmlDic):
 		res=[]

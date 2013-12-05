@@ -84,14 +84,20 @@ class MplCanvas(FigureCanvasQTAgg):
 	def on_key_press(self, e):
 		print('key pressed:', e.key, e.xdata, e.ydata, type(e.key))
 		
-		if e.key == 'control':
-			self.ctrlPressed=True
+		# if e.key == 'control':
+			# self.ctrlPressed=True
 		
 	def on_key_release(self, e):
 		print('key released :', e.key, e.xdata, e.ydata)
 		if e.key == 'control':
-			self.ctrlPressed=False
+			# self.ctrlPressed=False
+			if self.ctrlPressed==True:
+				self.ctrlPressed=False
+			else:
+				self.ctrlPressed=True
+				
 
+				
 	def on_press(self, e):
 		if not(e.inaxes is self.ax and e.button is 1 and self.ctrlPressed):
 		#若非 axes 内左键 
