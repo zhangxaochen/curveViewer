@@ -419,9 +419,15 @@ class MyWindow(QMainWindow):
 		parent=self, caption=u'打开文件夹', directory=os.path.curdir,
 			options=QFileDialog.ShowDirsOnly)
 		
-		# print(type(self.dirName))	#<class 'PyQt4.QtCore.QString'>
-		#str() 包裹下， 兼容性，必要：
-		self.dirName=str(self.dirName)
+		# print(type(self.dirName))	#py2, <class 'PyQt4.QtCore.QString'>
+		if sys.version_info[0] ==3:
+			#py3 QString 直接自动成为 str
+			# self.dirName=str(self.dirName)
+			pass
+		elif sys.version_info[0]==2:
+			print (self.dirName.toUtf8() )	#√ for py2, to QByteArray
+			#py2 这里需要用 unicode object， not str
+			self.dirName=unicode(self.dirName.toUtf8(), 'utf', 'strict')
 		
 		if self.dirName=='':
 			return
