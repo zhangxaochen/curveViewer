@@ -13,7 +13,8 @@ from glob import glob
 import os, sys, random, time
 from lxml import etree
 import traceback
-from utils import Utils, Keys, LPF
+# from utils import Utils, Keys, LPF
+from utils import *
 import math
 import numpy as np
 
@@ -137,25 +138,25 @@ class MyWindow(QMainWindow):
 		
 		#accBF x,y,z, xyz, xyz_lpf
 		if not hasattr(obj, 'accBF'):
-			obj.accBF=self.getAccBF(dic)
+			obj.accBF=getAccBF(dic)
 		#accWF x,y,z, AxyWF, azWF_LPF
 		if not hasattr(obj, 'accWF'):
-			obj.accWF=self.getAccWF(dic)
+			obj.accWF=getAccWF(dic)
 		if not hasattr(obj, 'vWF'):
 			# tsList=dic[Keys.kTs] if dic.get(Keys.kTs) != None else dic[Keys.kTimestamp]
 			tsList=obj.tsList
-			obj.vWF=self.getVWF(obj.accWF, tsList)
+			obj.vWF=getVWF(obj.accWF, tsList)
 		#displacement	位移：
 		if not hasattr(obj, 'dWF'):
-			obj.dWF=self.getDWF(obj.vWF, tsList)
+			obj.dWF=getDWF(obj.vWF, tsList)
 		#gyroBF x,y,z, gxyz, gxyz_lpf
 		if not hasattr(obj, 'gyroBF'):
-			obj.gyroBF=self.getGyroBF(dic)
+			obj.gyroBF=getGyroBF(dic)
 		#gyroWF x,y,z
 		if not hasattr(obj, 'gyroWF'):
-			obj.gyroWF=self.getGyroWF(dic)
+			obj.gyroWF=getGyroWF(dic)
 		if not hasattr(obj, 'angleWF'):
-			obj.angleWF=self.getAngleWF(obj.gyroWF, obj.tsList)
+			obj.angleWF=getAngleWF(obj.gyroWF, obj.tsList)
 		
 			
 		#-----------------plot
@@ -206,185 +207,6 @@ class MyWindow(QMainWindow):
 		
 		pass
 
-	#RETURN np.array of shape(5,n), [3]is gxyz, [4] is gxyz_lpf
-	def getGyroBF(self, xmlDic):
-		gx=xmlDic[Keys.kGx]
-		gy=xmlDic[Keys.kGy]
-		gz=xmlDic[Keys.kGz]
-		gxyz=(gx**2+gy**2+gz**2)**0.5
-		lpf=LPF()
-		gxyz_lpf=lpf.lpfTest(gxyz)
-
-		res=[]
-		res.append(gx)
-		res.append(gy)
-		res.append(gz)
-		res.append(gxyz)
-		res.append(gxyz_lpf)
-		res=np.asanyarray(res)
-		return res
-		pass
-		
-	#RETURN np.array of shape (3, n)
-	def getGyroWF(self, xmlDic):
-		res=[]
-		dic=xmlDic
-		
-		for i in range(len(dic[Keys.kAx])):
-			rotationVector=[
-				dic[Keys.kRx][i],
-				dic[Keys.kRy][i],
-				dic[Keys.kRz][i],
-				]
-			rotationMatrix=Utils.getRotationMatrixFromVector(rotationVector)
-			gbfVector=[
-				dic[Keys.kGx][i],
-				dic[Keys.kGy][i],
-				dic[Keys.kGz][i]
-				]
-			gwfVector=Utils.preMultiplyMV3(rotationMatrix, gbfVector)
-			res.append(gwfVector)
-		res=np.asanyarray(res).T
-		return res
-		pass
-	
-	#gyroWF.shape==(3,n),	tsList is in epoch seconds
-	#RETURN  res of shape(4, n), [3] is angz_lpf
-	def getAngleWF(self, gyroWF, tsList):
-		res=[]
-		
-		sum=np.zeros(3)
-		res.append(sum.copy())
-		for i in range(len(tsList)-1):
-			dt=tsList[i+1]-tsList[i]
-			if dt>1000:
-				print('=======================dt>1000. dt, i are:', dt, i)
-			dt=tsList[-1]-tsList[-2] if dt>1000 else dt
-			#i 偏小， i+1 偏大； 
-			sum+=gyroWF[:3, i]*dt/1000
-			res.append(sum.copy())
-		res=np.asanyarray(res).T
-		lpf=LPF()
-		angz_lpf=lpf.lpfTest(res[2])
-		res=np.vstack((res, angz_lpf))
-		return res
-		pass
-	
-	#RETURN np.array of shape(5,n), [3] is accXYZ, [4] is accXYZ_LPF
-	def getAccBF(self, xmlDic):
-		res=[]
-		res.append(xmlDic[Keys.kAx])
-		res.append(xmlDic[Keys.kAy])
-		res.append(xmlDic[Keys.kAz])
-		accXYZ=(res[0]**2+res[1]**2+res[2]**2)**0.5
-		res.append(accXYZ)
-		lpf=LPF()
-		accXYZ_LPF=lpf.lpfTest(accXYZ)
-		res.append(accXYZ_LPF)
-		res=np.asanyarray(res)
-		return res
-		pass
-	
-	#RETURN np.array of shape(5, n), arr[3] is axyWF, [4] is azWF_LPF, [5] is axyzWF
-	def getAccWF(self, xmlDic):
-		res=[]
-		dic=xmlDic
-		
-		for i in range(len(dic[Keys.kAx])):
-			rotationVector=[
-				dic[Keys.kRx][i],
-				dic[Keys.kRy][i],
-				dic[Keys.kRz][i],
-				]
-			accVector=[
-				dic[Keys.kAx][i],
-				dic[Keys.kAy][i],
-				dic[Keys.kAz][i]
-				]
-			rotationMatrix=Utils.getRotationMatrixFromVector(rotationVector)
-			# if i<2:
-				# print rotationMatrix
-			accWfVector=Utils.preMultiplyMV3(rotationMatrix, accVector)
-			# accWfVector=Utils.postMultiplyMV3(accVector, rotationMatrix)
-			# if i<2:
-				# print('accWfVector, rotationMatrix, accVector:', accWfVector, rotationMatrix, accVector)
-				# print accWfVector[0]
-			#AxyWF:
-			t=accWfVector
-			# t.append((t[0]**2+t[1]**2)**0.5)
-			res.append(t)
-		res=np.asanyarray(res).T
-		res[2]-=9.80665
-		
-		# 这里做一个加速度修正校正补偿：
-		for i in range(3):
-			res[i]=Utils.calibrate(res[i])
-		
-		axyWF=(res[0]**2+res[1]**2)**0.5
-		res=np.vstack((res, axyWF))
-		
-		# AzWF_LPF:
-		lpf=LPF()
-		azWF_LPF=lpf.lpfTest(res[2])
-		res=np.vstack((res, azWF_LPF))
-		
-		#AxyzWF:
-		axyzWF=(res[0]**2+res[1]**2+res[2]**2)**0.5
-		res=np.vstack((res, axyzWF))
-		
-		return res
-		pass
-	
-	# accWF.shape==(6, n);	tsList is in epoch seconds
-	#RETURN res of shape (4, n), res[3]=vxyWF
-	def getVWF(self, accWF, tsList):
-		res=[]
-		
-		# accWF=accWF.T
-		print('accWF.shape:', accWF.shape)
-		sum=np.zeros(3)
-		res.append(sum.copy())
-		
-		#滑动窗口长：
-		winsz=30
-		#判定静止阈值：
-		stillTh=0.01
-		for i in range(len(tsList)-1):
-			dt=tsList[i+1]-tsList[i]
-			#第一帧时间戳的 bug
-			if dt>1000:
-				print('=======================dt>1000. dt, i are:', dt, i)
-			dt=tsList[-1]-tsList[-2] if dt>1000 else dt
-			#i 偏小， i+1 偏大； 
-			# sum+=accWF[i][:3]*dt/1000
-			sum+=accWF[:3, i]*dt/1000
-			#看 axyzWF， 若平稳， 强制校正 v=0：
-			if i>=winsz and (sum!=np.zeros(3)).any() :
-				va=np.var(accWF[5][i-winsz:i])
-				if va<stillTh:
-					sum.fill(0)
-			res.append(sum.copy())
-		res=np.asanyarray(res).T
-		# vxyWF:
-		vxyWF=(res[0]**2+res[1]**2)**0.5
-		res=np.vstack((res, vxyWF))
-		return res
-		pass
-	
-	# vWF.shape==(3, n), tsList is in epoch seconds
-	def getDWF(self, vWF, tsList):
-		res=[]
-		sum=np.zeros(3)
-		res.append(sum.copy())
-		for i in range(len(tsList)-1):
-			dt=tsList[i+1]-tsList[i]
-			dt=tsList[-1]-tsList[-2] if dt>1000 else dt
-			sum+=vWF[:3, i]*dt/1000
-			res.append(sum.copy())
-		res=np.asanyarray(res).T
-		return res
-		pass
-		
 	#必须有 previous， 否则不自动connect
 	@pyqtSlot(QListWidgetItem, QListWidgetItem)
 	def on_listWidgetFile_currentItemChanged(self, item, prev):
