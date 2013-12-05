@@ -313,8 +313,7 @@ class MyWindow(QMainWindow):
 			res.append(sum.copy())
 		res=np.asanyarray(res).T
 		# vwfXY:
-		vwfXY=(res[0]**2+res[2]**2)**0.5
-		# res.append(vwfXY)
+		vwfXY=(res[0]**2+res[1]**2)**0.5
 		res=np.vstack((res, vwfXY))
 		return res
 		pass
