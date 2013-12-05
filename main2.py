@@ -131,28 +131,12 @@ class MyWindow(QMainWindow):
 		obj=self.fileDict[fname]
 		dic=obj.xmlDic
 		
-		# accX=dic[Keys.kAx]
-		# accY=dic[Keys.kAy]
-		# accZ=dic[Keys.kAz]
-		# gx=dic[Keys.kGx]
-		# gy=dic[Keys.kGy]
-		# gz=dic[Keys.kGz]
-		
-		#机身合加速度
-		# if not hasattr(obj, 'accXYZ'):
-			# obj.accXYZ=(accX**2+accY**2+accZ**2)**0.5
-		# if not hasattr(obj, 'accXYZ_LPF'):
-			# lpf=LPF()
-			# # obj.accXYZ_LPF=lpf.lpfScipy(obj.accXYZ)
-			# obj.accXYZ_LPF=lpf.lpfTest(obj.accXYZ)
+		#accBF x,y,z, xyz, xyz_lpf
 		if not hasattr(obj, 'accBF'):
 			obj.accBF=self.getAccBF(dic)
+		#accWF x,y,z, AxyWF, azWF_LPF
 		if not hasattr(obj, 'accWF'):
 			obj.accWF=self.getAccWF(dic)
-		# if not hasattr(obj, 'azWF_LPF'):
-			# lpf=LPF()
-			# # obj.azWF_LPF=lpf.lpfScipy(obj.accWF[2])
-			# obj.azWF_LPF=lpf.lpfTest(obj.accWF[2])
 		if not hasattr(obj, 'vWF'):
 			# tsList=dic[Keys.kTs] if dic.get(Keys.kTs) != None else dic[Keys.kTimestamp]
 			tsList=obj.tsList
@@ -160,93 +144,40 @@ class MyWindow(QMainWindow):
 		#displacement	位移：
 		if not hasattr(obj, 'dWF'):
 			obj.dWF=self.getDWF(obj.vWF, tsList)
-		#机身gyro和值
-		# if not hasattr(obj, 'gxyz'):
-			# obj.gxyz=(gx**2+gy**2+gz**2)**0.5
-		# if not hasattr(obj, 'gxyz_lpf'):
-			# lpf=LPF()
-			# obj.gxyz_lpf=lpf.lpfTest(obj.gxyz)
+		#gyroBF x,y,z, gxyz, gxyz_lpf
 		if not hasattr(obj, 'gyroBF'):
 			obj.gyroBF=self.getGyroBF(dic)
-		#试图把 gyro 转换世界坐标
+		#gyroWF x,y,z
 		if not hasattr(obj, 'gyroWF'):
 			obj.gyroWF=self.getGyroWF(dic)
 		
 			
 		#-----------------plot
 		#AccBF
-		# if idx==self.channelDict[self.accBfKeys[0]]:
-			# ax.plot(accX, co[0], label=self.accBfKeys[0])
-		# elif idx==self.channelDict[self.accBfKeys[1]]:
-			# ax.plot(accY, co[1], label=self.accBfKeys[1])
-		# elif idx==self.channelDict[self.accBfKeys[2]]:
-			# ax.plot(accZ, co[2], label=self.accBfKeys[2])
-		# elif idx==self.channelDict[self.accBfKeys[3]]:
-			# ax.plot(obj.accXYZ, co[3], label=self.accBfKeys[3])
-		# elif idx==self.channelDict[self.accBfKeys[4]]:
-			# ax.plot(obj.accXYZ_LPF, co[4], label=self.accBfKeys[4], lw=2)
 		for i, k in enumerate(self.accBfKeys):
 			if idx==self.channelDict[k]:
 				lw=1 if i !=4 else 2
 				ax.plot(obj.accBF[i], co[i], label=k, lw=lw)
 		#AccWF
-		# elif idx==self.channelDict[self.accWfKeys[0]]:
-			# ax.plot(obj.accWF[0], co[0], label=self.accWfKeys[0], ls='--', lw=2)
-		# elif idx==self.channelDict[self.accWfKeys[1]]:
-			# ax.plot(obj.accWF[1], co[1], label=self.accWfKeys[1], ls='--', lw=2)
-		# elif idx==self.channelDict[self.accWfKeys[2]]:
-			# ax.plot(obj.accWF[2], co[2], label=self.accWfKeys[2], ls='--', lw=2)
-		# elif idx==self.channelDict[self.accWfKeys[3]]:
-			# ax.plot(obj.accWF[3], co[3], label=self.accWfKeys[3], ls='--', lw=2)
-		# elif idx==self.channelDict[self.accWfKeys[4]]:
-			# ax.plot(obj.azWF_LPF, co[4], label=self.accWfKeys[4], ls='--', lw=2)
 		for i, k in enumerate(self.accWfKeys):
 			if idx==self.channelDict[k]:
 				ax.plot(obj.accWF[i], co[i], label=k, ls='--', lw=2)
 
 		#vWF
-		# elif idx==self.channelDict[self.velKeys[0]]:
-			# ax.plot(obj.vWF[0], co[0], label=self.velKeys[0], lw=2)
-		# elif idx==self.channelDict[self.velKeys[1]]:
-			# ax.plot(obj.vWF[1], co[1], label=self.velKeys[1], lw=2)
-		# elif idx==self.channelDict[self.velKeys[2]]:
-			# ax.plot(obj.vWF[2], co[2], label=self.velKeys[2], lw=2)
-		# elif idx==self.channelDict[self.velKeys[3]]:
-			# # vxy=(obj.vWF[0]**2+obj.vWF[1]**2)**0.5
-			# # ax.plot(vxy, co[3], label=self.velKeys[3], lw=2)
-			# ax.plot(obj.vWF[3], co[3], label=self.velKeys[3], lw=2)
 		for i, k in enumerate(self.velKeys):
 			if idx==self.channelDict[k]:
 				ax.plot(obj.vWF[i], co[i], label=k, lw=2)
 			
 		#gyro in BF:
-		# elif idx==self.channelDict[self.gbfKeys[0]]:
-			# ax.plot(gx, co[0], label=self.gbfKeys[0])
-		# elif idx==self.channelDict[self.gbfKeys[1]]:
-			# ax.plot(gy, co[1], label=self.gbfKeys[1])
-		# elif idx==self.channelDict[self.gbfKeys[2]]:
-			# ax.plot(gz, co[2], label=self.gbfKeys[2])
-		# elif idx==self.channelDict[self.gbfKeys[3]]:
-			# ax.plot(obj.gxyz, co[3], label=self.gbfKeys[3])
-		# elif idx==self.channelDict[self.gbfKeys[4]]:
-			# ax.plot(obj.gxyz_lpf, co[4], label=self.gbfKeys[4], lw=2)
 		for i, k in enumerate(self.gbfKeys):
 			if idx==self.channelDict[k]:
 				lw=1 if i !=4 else 2
 				ax.plot(obj.gyroBF[i], co[i], label=k, lw=lw)
 
 		#gyro in WF:
-		# elif idx==self.channelDict[self.gwfKeys[0]]:
-			# ax.plot(obj.gyroWF[0], co[0], label=self.gwfKeys[0])
-		# elif idx==self.channelDict[self.gwfKeys[1]]:
-			# ax.plot(obj.gyroWF[1], co[1], label=self.gwfKeys[1])
-		# elif idx==self.channelDict[self.gwfKeys[2]]:
-			# ax.plot(obj.gyroWF[2], co[2], label=self.gwfKeys[2])
 		for i, k in enumerate(self.gwfKeys):
 			if idx==self.channelDict[k]:
 				ax.plot(obj.gyroWF[i], co[i], label=k, )
-
-		
 		
 		#displacement:
 		if idx==self.channelDict['Displacement']:
@@ -309,6 +240,7 @@ class MyWindow(QMainWindow):
 		return res
 		pass
 		
+	#RETURN np.array of shape(5,n), [3] is accXYZ, [4] is accXYZ_LPF
 	def getAccBF(self, xmlDic):
 		res=[]
 		res.append(xmlDic[Keys.kAx])
