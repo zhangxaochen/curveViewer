@@ -185,7 +185,7 @@ class MyWindow(QMainWindow):
 		#angle in WF:
 		for i, k in enumerate(self.angWfKeys):
 			if idx==self.channelDict[k]:
-				ax.plot(obj.angleWF[i], co[i], label=k)
+				ax.plot(obj.angleWF[i], co[i], label=k, lw=2)
 		
 		#displacement:
 		if idx==self.channelDict['Displacement']:
