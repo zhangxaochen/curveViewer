@@ -68,6 +68,29 @@ class LPF:
 
 class Utils:
 	@staticmethod
+	def calibrate(data):
+		# 信号偏移：
+		drift=0
+		#滑动窗口长：
+		winsz=30
+		#判定静止阈值：
+		stillTh=0.01
+		res=[]
+		for i in range(len(data)):
+			if i<winsz:
+				res.append(data[i])
+				continue
+			va=np.var(data[i-winsz:i])
+			if va<stillTh:
+				drift=np.mean(data[i-winsz:i])
+				# print 'drift', drift
+				# break
+			res.append(data[i]-drift)
+		# res=np.asanyarray(data)-drift
+		return np.asanyarray(res)
+		pass
+	
+	@staticmethod
 	#等价于 h=firwin(...)	√
 	def getHammingWin(n):
 		ham=[0.54-0.46*np.cos(2*np.pi*i/(n-1)) for i in range(n)]

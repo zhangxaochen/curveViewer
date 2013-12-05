@@ -21,7 +21,7 @@ import numpy as np
 from curveViewer_ui import *
 
 #colors
-co=('r', 'g', 'b', 'm', 'c')
+co=('r', 'g', 'b', 'm', 'c', 'b')
 
 class MyWindow(QMainWindow):
 	#全局
@@ -38,7 +38,7 @@ class MyWindow(QMainWindow):
 	fileDict={}
 	
 	accBfKeys=['AxBF', 'AyBF', 'AzBF', 'AxyzBF', 'AxyzBF_LPF']
-	accWfKeys=['AxWF', 'AyWF', 'AzWF', 'AxyWF', 'AzWF_LPF']
+	accWfKeys=['AxWF', 'AyWF', 'AzWF', 'AxyWF', 'AzWF_LPF', 'AxyzWF']
 	velKeys=['Vx', 'Vy', 'Vz', 'Vxy', ]
 	
 	gbfKeys=['GxBF', 'GyBF', 'GzBF', 'GxyzBF', 'GxyzBF_LPF']
@@ -285,7 +285,7 @@ class MyWindow(QMainWindow):
 		return res
 		pass
 	
-	#RETURN np.array of shape(5, n), arr[3] is AxyWF, [4] is azWF_LPF
+	#RETURN np.array of shape(5, n), arr[3] is axyWF, [4] is azWF_LPF, [5] is axyzWF
 	def getAccWF(self, xmlDic):
 		res=[]
 		dic=xmlDic
@@ -311,19 +311,32 @@ class MyWindow(QMainWindow):
 				# print accWfVector[0]
 			#AxyWF:
 			t=accWfVector
-			t.append((t[0]**2+t[1]**2)**0.5)
-			res.append(accWfVector)
+			# t.append((t[0]**2+t[1]**2)**0.5)
+			res.append(t)
 		res=np.asanyarray(res).T
 		res[2]-=9.80665
+		
+		# 这里做一个加速度修正校正补偿：
+		for i in range(3):
+			res[i]=Utils.calibrate(res[i])
+		
+		axyWF=(res[0]**2+res[1]**2)**0.5
+		res=np.vstack((res, axyWF))
+		
 		# AzWF_LPF:
 		lpf=LPF()
 		azWF_LPF=lpf.lpfTest(res[2])
 		res=np.vstack((res, azWF_LPF))
+		
+		#AxyzWF:
+		axyzWF=(res[0]**2+res[1]**2+res[2]**2)**0.5
+		res=np.vstack((res, axyzWF))
+		
 		return res
 		pass
 	
-	# accWF.shape==(4, n);	tsList is in epoch seconds
-	#RETURN res of shape (4, n), res[3]=vwfXY
+	# accWF.shape==(6, n);	tsList is in epoch seconds
+	#RETURN res of shape (4, n), res[3]=vxyWF
 	def getVWF(self, accWF, tsList):
 		res=[]
 		
@@ -331,6 +344,11 @@ class MyWindow(QMainWindow):
 		print('accWF.shape:', accWF.shape)
 		sum=np.zeros(3)
 		res.append(sum.copy())
+		
+		#滑动窗口长：
+		winsz=30
+		#判定静止阈值：
+		stillTh=0.01
 		for i in range(len(tsList)-1):
 			dt=tsList[i+1]-tsList[i]
 			#第一帧时间戳的 bug
@@ -340,11 +358,16 @@ class MyWindow(QMainWindow):
 			#i 偏小， i+1 偏大； 
 			# sum+=accWF[i][:3]*dt/1000
 			sum+=accWF[:3, i]*dt/1000
+			#看 axyzWF， 若平稳， 强制校正 v=0：
+			if i>=winsz and (sum!=np.zeros(3)).any() :
+				va=np.var(accWF[5][i-winsz:i])
+				if va<stillTh:
+					sum.fill(0)
 			res.append(sum.copy())
 		res=np.asanyarray(res).T
-		# vwfXY:
-		vwfXY=(res[0]**2+res[1]**2)**0.5
-		res=np.vstack((res, vwfXY))
+		# vxyWF:
+		vxyWF=(res[0]**2+res[1]**2)**0.5
+		res=np.vstack((res, vxyWF))
 		return res
 		pass
 	
