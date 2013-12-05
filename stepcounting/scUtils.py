@@ -50,7 +50,7 @@ def getAccWf(dic):
 		accWfVector=Utils.preMultiplyMV3(rotationMatrix, accVector)		
 		accWfList.append(accWfVector)
 
-	accWfList=np.array(accWfList).T
+	accWfList=np.asanyarray(accWfList).T
 	return accWfList
 	pass
 
