@@ -27,10 +27,11 @@ labelAcc=0
 #转弯：
 labelTurn=1
 debug=True
+INVALID=-10000
 
 def labelData(data, tsList, label, winsz, th, debug):
 	start=False
-	left=right=-1
+	left=right=INVALID
 	lines=[]
 	lw=1 if label ==labelAcc else 2
 	
@@ -45,10 +46,10 @@ def labelData(data, tsList, label, winsz, th, debug):
 			scatter(i, delta*100, s=20, c='m')
 		if delta>th and not start:
 			start=True
-			#若 i 不在上一段 (left, right) 区间：
-			if i>right:
+			#若 i 不在上一段 (left, right+winsz) 区间：
+			if i>right+winsz:
 				# 若 right 非初始状态，即赋过值了:
-				if right!=-1:
+				if right!=INVALID:
 					if debug:
 						axvline(right, c='y', lw=lw)
 					# lines.append('%d %d %d\n'%(label, left, right) )
@@ -63,7 +64,9 @@ def labelData(data, tsList, label, winsz, th, debug):
 			start=False
 			right=i+winsz
 			# axvline(right, c='y')
-	if lines==[] and right>left:
+	#加上最后一段：
+	# if lines==[] and right>left:
+	if right>left:
 		if debug:
 			axvline(right, c='y', lw=lw)
 		# lines.append('%d %d %d\n'%(label, left, right) )
@@ -78,7 +81,7 @@ def main():
 	outfname=sys.argv[2] if len(sys.argv)>2 else None
 	if fname==None:
 		fname=r'D:\Documents\Desktop\huaweiproj-driving\taxi1011_a2_0.xml'
-		# fname=r'E:\桌面-2012-12-31\bysj 毕业设计 毕设\毕设-资料\step-counting,detection\我的计步算法实现\行为识别数据采集备份\华为深圳+杭州9月驾驶数据\origin\驾车数据\htc&matepro_胡平\Hupingzw_a2_1.xml'
+		# fname=r'E:\桌面-2012-12-31\bysj 毕业设计 毕设\毕设-资料\step-counting,detection\我的计步算法实现\行为识别数据采集备份\华为深圳+杭州9月驾驶数据\origin\驾车数据\htc&matepro_胡平\Hupingqdjs_a0_7.xml'
 	if outfname==None:
 		outfname='shit.x'
 	
@@ -119,25 +122,26 @@ def main():
 	angleWF=getAngleWF(gyroWF, tsList)
 	
 	#滑动窗口设为FPS：
-	winsz=rate
+	winsz=rate*2
 	#delta vxy threshold:
-	dvTh=0.005
+	dvTh=0.008
 	#根据 vxyWF 判断加减速， 根据窗口内 (win[-1]-win[0])/winsz 大小
 	vxyWF=vWF[3]
+	fig=figure()
+	fig.add_subplot(121).set_title('VxyWF')
 	lines=labelData(vxyWF, tsList, labelAcc, winsz, dvTh, debug)
 	print('---------------acc + dec:')
 	for l in lines:
 		print(l)
 		outf.write('%d %f %f\n'%(l[0], tsList[l[1]]/1000, tsList[l[2]]/1000) )
-		
-	#根据 angzwf 判断转弯， 根据窗口内 (win[-1]-win[0])/winsz 大小
-	angzwf=abs(angleWF[2])
-	if debug:
-		plot(angzwf, 'g')
-
-	winsz=rate
+	# show()
+	
+	winsz=rate*2
 	#delta angle threshold
 	dAngTh=0.005
+	#根据 angzwf 判断转弯， 根据窗口内 (win[-1]-win[0])/winsz 大小
+	angzwf=abs(angleWF[2])
+	fig.add_subplot(122).set_title('AngleZWF')
 	lines=labelData(angzwf, tsList, labelTurn, winsz, dAngTh, debug)
 	print('---------------turn:')
 	for l in lines:
