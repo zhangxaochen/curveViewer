@@ -15,6 +15,7 @@ import numpy as np
 #import xml.etree.ElementTree as ET
 from lxml import etree
 from scipy.interpolate import interp1d
+from getopt import getopt
 from pylab import *
 
 from utils import *
@@ -25,6 +26,47 @@ from xmlBackCompat import *
 labelAcc=0
 #转弯：
 labelTurn=1
+debug=False
+
+def labelData(data, label, winsz, th, debug):
+	start=False
+	left=right=-1
+	lines=[]
+	
+	if debug:
+		plot(data, 'b')
+	for i in range(len(data)):
+		if i+winsz>len(data):
+			break
+		win=data[i: i+winsz]
+		delta=(win[-1]-win[0])/winsz
+		if debug:
+			scatter(i, delta*100, s=20, c='m')
+		if delta>th and not start:
+			start=True
+			#若 i 不在上一段 (left, right) 区间：
+			if i>right:
+				# 若 right 非初始状态，即赋过值了:
+				if right!=-1:
+					if debug:
+						axvline(right, c='y', lw=2)
+					lines.append('%d %d %d\n'%(label, left, right) )
+				
+				left=i
+				if debug:
+					axvline(left, c='r', lw=2)
+				
+			# axvline(left, c='r')
+		elif delta<th and start:
+			start=False
+			right=i+winsz
+			# axvline(right, c='y')
+	if lines==[] and right>left:
+		if debug:
+			axvline(right, c='y')
+		lines.append('%d %d %d\n'%(label, left, right) )
+	return lines
+	pass
 
 def main():
 	# print(sys.argv)
@@ -32,7 +74,7 @@ def main():
 	fname=sys.argv[1] if len(sys.argv)>1 else None
 	outfname=sys.argv[2] if len(sys.argv)>2 else None
 	if fname==None:
-		fname=r'D:\Documents\Desktop\huaweiproj-driving\taxi1011_a0_1.xml'
+		fname=r'D:\Administrator\Desktop\=huaweiproj-driving\taxi1011_a2_0.xml'
 	if outfname==None:
 		outfname='shit.x'
 	
@@ -46,7 +88,7 @@ def main():
 	rate=30
 	interpKind='linear'
 	#先线性插值成 30fps ：
-	interpData=getInterpData(data)
+	interpData=getInterpData(data, rate)
 	tree=getOldStyleElementTree(interpData)
 	
 	#获得数据dict， 截取自 scUtils.py：
@@ -72,92 +114,31 @@ def main():
 	gyroWF=getGyroWF(dic)
 	angleWF=getAngleWF(gyroWF, tsList)
 	
-	winsz=30
-	start=False
-	
+	#滑动窗口设为FPS：
+	winsz=rate
 	#delta vxy threshold:
 	dvTh=0.005
-	left=right=-1
-	lines=[]
 	#根据 vxyWF 判断加减速， 根据窗口内 (win[-1]-win[0])/winsz 大小
 	vxyWF=vWF[3]
-	#debug
-	plot(vxyWF, 'b')
-	for i in range(len(tsList)):
-		if i+winsz>len(tsList):
-			break
-		win=vxyWF[i: i+winsz]
-		dv=(win[-1]-win[0])/winsz
-		#debug
-		scatter(i, dv*100, s=20, c='m')
-		if dv>dvTh and not start:
-			start=True
-			#若 i 不在上一段 (left, right) 区间：
-			if i>right:
-				# 此处判断为了防止 right is 0:
-				if right>left:
-					#debug
-					axvline(right, c='y', lw=2)
-					# 此处存 label 文件：
-					# outf.write(line)
-					lines.append('%d %d %d\n'%(labelAcc, left, right) )
-				
-				left=i
-				#debug
-				axvline(left, c='r', lw=2)
-				
-			# axvline(left, c='r')
-		elif dv<dvTh and start:
-			start=False
-			right=i+winsz
-			# axvline(right, c='y')
-	if lines==[] and right>left:
-		#debug
-		axvline(right, c='y')
-		lines.append('%d %d %d\n'%(labelAcc, left, right) )
+	lines=labelData(vxyWF, labelAcc, winsz, dvTh, debug)
+	print('---------------acc + dec:')
+	for l in lines:
+		print(l)
 	outf.writelines(lines)
 		
-	#根据 angleWF 判断加减速， 根据窗口内 (win[-1]-win[0])/winsz 大小
-	# print(angleWF, angleWF.shape)
-	#debug
-	plot(angleWF[2], 'g')
+	#根据 angzwf 判断转弯， 根据窗口内 (win[-1]-win[0])/winsz 大小
 	angzwf=abs(angleWF[2])
+	if debug:
+		plot(angzwf, 'g')
 
-	winsz=30
-	start=False
+	winsz=rate
 	#delta angle threshold
 	dAngTh=0.005
-	left=right=-1
-	lines=[]
-	for i in range(len(tsList)):
-		if i+winsz>len(tsList):
-			break
-		win=angzwf[i: i+winsz]
-		dAng=(win[-1]-win[0])/winsz
-		#debug
-		scatter(i, dAng*100, s=20, c='c')
-		if dAng>dAngTh and not start:
-			start=True
-			if i>right:
-				if right>left :#or True:
-					#debug
-					axvline(right, c='y')
-					# 此处存 label 文件：
-					lines.append('%d %d %d\n'%(labelTurn, left, right) )
-					# outf.write(line)
-				left=i
-				#debug
-				axvline(left, c='r')
-		elif dAng<dAngTh and start:
-			start=False
-			right=i+winsz
-	if lines==[] and right>left:
-		#debug
-		axvline(right, c='y')
-		lines.append('%d %d %d\n'%(labelTurn, left, right) )
+	lines=labelData(angzwf, labelTurn, winsz, dAngTh, debug)
+	print('---------------turn:')
+	for l in lines:
+		print(l)
 	outf.writelines(lines)
-
-		
 	
 	outf.close()
 	show()
