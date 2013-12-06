@@ -91,7 +91,7 @@ def main():
 		
 		#-----------------interpData shape is {t:[], a:[ array([...]),[],[] ], g:[ [],[],[] ], m.. r.. }
 		begTiming=time.time()
-		interpData=getInterpData(data)
+		interpData=getInterpData(data, rate)
 		print('[[[getInterpData() takes: %f'%(time.time()-begTiming))
 
 		if style == strOld:
@@ -366,14 +366,14 @@ def loadFile(fname):
 		assert False, '-----------probably wrong xml folder'
 	
 
-def getInterpData(data):
+def getInterpData(data, rate):
 	'''
 	PARAMS
 		data:  shape is {Keys.kA:np.ndarray([[t, x,y,z], ..., [t, x,y,z]], Keys.kG:...,  Keys.kM:...,  Keys.kR:...}
 	RETURN
 		interpData: a dict,  shape is {t:[], a:[ array([...]),[],[] ], g:[ [],[],[] ], m.. r.. }
 	'''
-	global rate
+	# global rate
 	startTime=max(float(v[0][0]) for _,v in data.items())
 	stopTime=min(float(v[-1][0]) for _,v in data.items())
 	print('startTime:', startTime, [float(v[0][0]) for _,v in data.items()], )
