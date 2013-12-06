@@ -389,19 +389,14 @@ def getAccWF(xmlDic):
 			dic[Keys.kRy][i],
 			dic[Keys.kRz][i],
 			]
+		rotationMatrix=Utils.getRotationMatrixFromVector(rotationVector)
 		accVector=[
 			dic[Keys.kAx][i],
 			dic[Keys.kAy][i],
 			dic[Keys.kAz][i]
 			]
-		rotationMatrix=Utils.getRotationMatrixFromVector(rotationVector)
-		# if i<2:
-			# print rotationMatrix
 		accWfVector=Utils.preMultiplyMV3(rotationMatrix, accVector)
 		# accWfVector=Utils.postMultiplyMV3(accVector, rotationMatrix)
-		# if i<2:
-			# print('accWfVector, rotationMatrix, accVector:', accWfVector, rotationMatrix, accVector)
-			# print accWfVector[0]
 		#AxyWF:
 		t=accWfVector
 		# t.append((t[0]**2+t[1]**2)**0.5)
