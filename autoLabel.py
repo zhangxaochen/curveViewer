@@ -28,7 +28,7 @@ labelAcc=0
 labelTurn=1
 debug=True
 
-def labelData(data, label, winsz, th, debug):
+def labelData(data, tsList, label, winsz, th, debug):
 	start=False
 	left=right=-1
 	lines=[]
@@ -51,7 +51,8 @@ def labelData(data, label, winsz, th, debug):
 				if right!=-1:
 					if debug:
 						axvline(right, c='y', lw=lw)
-					lines.append('%d %d %d\n'%(label, left, right) )
+					# lines.append('%d %d %d\n'%(label, left, right) )
+					lines.append([label, left, right])
 				
 				left=i
 				if debug:
@@ -65,7 +66,8 @@ def labelData(data, label, winsz, th, debug):
 	if lines==[] and right>left:
 		if debug:
 			axvline(right, c='y', lw=lw)
-		lines.append('%d %d %d\n'%(label, left, right) )
+		# lines.append('%d %d %d\n'%(label, left, right) )
+		lines.append([label, left, right])
 	return lines
 	pass
 
@@ -75,7 +77,8 @@ def main():
 	fname=sys.argv[1] if len(sys.argv)>1 else None
 	outfname=sys.argv[2] if len(sys.argv)>2 else None
 	if fname==None:
-		fname=r'D:\Administrator\Desktop\=huaweiproj-driving\taxi1011_a2_0.xml'
+		fname=r'D:\Documents\Desktop\huaweiproj-driving\taxi1011_a2_0.xml'
+		# fname=r'E:\桌面-2012-12-31\bysj 毕业设计 毕设\毕设-资料\step-counting,detection\我的计步算法实现\行为识别数据采集备份\华为深圳+杭州9月驾驶数据\origin\驾车数据\htc&matepro_胡平\Hupingzw_a2_1.xml'
 	if outfname==None:
 		outfname='shit.x'
 	
@@ -121,11 +124,11 @@ def main():
 	dvTh=0.005
 	#根据 vxyWF 判断加减速， 根据窗口内 (win[-1]-win[0])/winsz 大小
 	vxyWF=vWF[3]
-	lines=labelData(vxyWF, labelAcc, winsz, dvTh, debug)
+	lines=labelData(vxyWF, tsList, labelAcc, winsz, dvTh, debug)
 	print('---------------acc + dec:')
 	for l in lines:
 		print(l)
-	outf.writelines(lines)
+		outf.write('%d %f %f\n'%(l[0], tsList[l[1]]/1000, tsList[l[2]]/1000) )
 		
 	#根据 angzwf 判断转弯， 根据窗口内 (win[-1]-win[0])/winsz 大小
 	angzwf=abs(angleWF[2])
@@ -135,11 +138,11 @@ def main():
 	winsz=rate
 	#delta angle threshold
 	dAngTh=0.005
-	lines=labelData(angzwf, labelTurn, winsz, dAngTh, debug)
+	lines=labelData(angzwf, tsList, labelTurn, winsz, dAngTh, debug)
 	print('---------------turn:')
 	for l in lines:
 		print(l)
-	outf.writelines(lines)
+		outf.write('%d %f %f\n'%(l[0], tsList[l[1]]/1000, tsList[l[2]]/1000) )
 	
 	outf.close()
 	show()
