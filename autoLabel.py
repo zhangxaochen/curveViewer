@@ -26,12 +26,13 @@ from xmlBackCompat import *
 labelAcc=0
 #转弯：
 labelTurn=1
-debug=False
+debug=True
 
 def labelData(data, label, winsz, th, debug):
 	start=False
 	left=right=-1
 	lines=[]
+	lw=1 if label ==labelAcc else 2
 	
 	if debug:
 		plot(data, 'b')
@@ -49,12 +50,12 @@ def labelData(data, label, winsz, th, debug):
 				# 若 right 非初始状态，即赋过值了:
 				if right!=-1:
 					if debug:
-						axvline(right, c='y', lw=2)
+						axvline(right, c='y', lw=lw)
 					lines.append('%d %d %d\n'%(label, left, right) )
 				
 				left=i
 				if debug:
-					axvline(left, c='r', lw=2)
+					axvline(left, c='r', lw=lw)
 				
 			# axvline(left, c='r')
 		elif delta<th and start:
@@ -63,7 +64,7 @@ def labelData(data, label, winsz, th, debug):
 			# axvline(right, c='y')
 	if lines==[] and right>left:
 		if debug:
-			axvline(right, c='y')
+			axvline(right, c='y', lw=lw)
 		lines.append('%d %d %d\n'%(label, left, right) )
 	return lines
 	pass
