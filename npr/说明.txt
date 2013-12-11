@@ -1,0 +1,8 @@
+本程序实现论文： 《一种改进的铅笔画的生成方法》（见附件压缩包）
+
+运行方式：
+1. 安装 python；
+2. 安装脚本依赖（推荐用 easy_install）： numpy, scikits.vectorplot, scikit-image, Pillow, 
+3. 运行脚本: python imageSketch.py <imageFilePath>， 例如： python imageSketch.py .\examples\1.png
+
+为防止因无法运行脚本看不到结果，一些示例结果见 ./examples/*
