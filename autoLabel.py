@@ -81,7 +81,7 @@ def main():
 	outfname=sys.argv[2] if len(sys.argv)>2 else None
 	if fname==None:
 		fname=r'D:\Documents\Desktop\huaweiproj-driving\taxi1011_a1_4.xml'
-		# fname=r'E:\桌面-2012-12-31\bysj 毕业设计 毕设\毕设-资料\step-counting,detection\我的计步算法实现\行为识别数据采集备份\华为深圳+杭州9月驾驶数据\origin\驾车数据\htc&matepro_胡平\Hupingqdjs_a0_7.xml'
+		fname=r'E:\桌面-2012-12-31\bysj 毕业设计 毕设\毕设-资料\step-counting,detection\我的计步算法实现\行为识别数据采集备份\华为深圳+杭州9月驾驶数据\origin\驾车数据\htc&matepro_胡平\Hupingzw_a2_5.xml'
 	if outfname==None:
 		outfname='shit.x'
 	
