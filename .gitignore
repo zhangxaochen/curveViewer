@@ -5,6 +5,7 @@
 #by zhangxaochen:
 segmented/
 huaweiproj-data-20130517/
+npr/examples
 
 *.pydevproject
 .project
