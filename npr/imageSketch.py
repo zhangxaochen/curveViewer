@@ -5,7 +5,7 @@
 
 from pylab import *
 import numpy as np
-from PIL import Image
+from PIL import Image, ImageFilter
 import os, sys
 
 # <codecell>
@@ -182,6 +182,16 @@ def normArray(a, low=0, high=1.0):
 	res=1.0*(a-amin)*(high-low)/arange+low
 	return res.astype(np.float32)
 
+def getWhiteNoise(a, sigma):
+	# print 'a.shape:', a.shape
+	ar=a.ravel()
+	res=[np.random.normal(loc=v, scale=sigma) for v in ar]
+	res=np.asarray(res, dtype=np.float32)
+	res=res.reshape(a.shape)
+	# print 'res.shape:', res.shape, a.shape
+	return res
+	pass
+	
 # <codecell>
 
 
@@ -216,9 +226,12 @@ def main():
 	arrimg=np.array(grayimg)
 	arrimg[arrimg>168]=240
 	#imshow(arrimg)
-	#Image.fromarray(arrimg).show()
-	seg=slic(arrimg, sigma=2.5, n_segments=3, ratio=50)
-	#imshow(seg)
+	seg=Image.fromarray(arrimg).filter(ImageFilter.MinFilter(11))
+	seg.show()
+	seg=slic(np.array(seg), sigma=0.5, n_segments=10, ratio=20)
+	# imshow(seg)
+	# show()
+	# return
 	
 	#生成向量场：
 	u,v=getVectorFromSeg(seg)
@@ -226,7 +239,10 @@ def main():
 	#线积分卷积 LIC：
 	from scikits import vectorplot
 	texture=normArray(arrimg)
-	#假装白噪声，巨丑：
+	texture=getWhiteNoise(texture, sigma=0.6)
+	Image.fromarray(normArray(texture, high=255)).show()
+	# return
+	#黑白图假装白噪声，巨丑：
 	#texture=Image.fromarray(arrimg).convert('1')
 	#texture=np.asarray(texture, dtype=np.float32)
 	#print texture.dtype
@@ -236,12 +252,13 @@ def main():
 	licimg=normArray(licimg, high=255)
 	#print 'licimg:', licimg
 	lic=Image.fromarray(licimg)
+	lic.show()
 	lic=lic.convert('L')
 	edge=edge.convert('L')
 	#print lic.size, edge.size, lic.mode, edge.mode
 	#lic.show()
 	#edge.show()
-	result=Image.blend(edge, lic, 0.28)
+	result=Image.blend(edge, lic, 0.208)
 	result.show()
 	result.save(mainFname+'.out'+ext)
 	pass
