@@ -319,7 +319,8 @@ def loadNewXmlTree(root):
 		for idx, f in enumerate(frameList):
 			ts=float(f.find(Keys.kTime).text)
 			if idx is 0:
-				print('ts:', ts, type(ts))
+				# print('ts:', ts, type(ts))
+				pass
 				# continue
 			# if idx in [i for i in range(10)]:	#学傻了
 			if idx in range(10):
