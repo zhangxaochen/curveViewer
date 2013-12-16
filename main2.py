@@ -49,7 +49,9 @@ class MyWindow(QMainWindow):
 	
 	disKeys=['Displacement']
 	
-	channelsToShow=accBfKeys+accWfKeys+velKeys+gbfKeys+gwfKeys+angWfKeys+disKeys
+	rotKeys=[Keys.kRx, Keys.kRy, Keys.kRz, Keys.kRw, ]
+	
+	channelsToShow=accBfKeys+accWfKeys+velKeys+gbfKeys+gwfKeys+angWfKeys+disKeys+rotKeys
 
 	#channelsToShow 改成 dict
 	channelDict={}
@@ -157,6 +159,10 @@ class MyWindow(QMainWindow):
 			obj.gyroWF=getGyroWF(dic)
 		if not hasattr(obj, 'angleWF'):
 			obj.angleWF=getAngleWF(obj.gyroWF, obj.tsList)
+		#rotation vector x, y, z, w
+		if not hasattr(obj, 'rotVec'):
+			obj.rotVec=getRotationVector(dic)
+		
 		
 			
 		#-----------------plot
@@ -204,6 +210,11 @@ class MyWindow(QMainWindow):
 				bbox = dict(boxstyle = 'round,pad=0.5', fc = 'yellow', alpha = 0.5),
 				fontsize=12, arrowprops=dict(arrowstyle='->', connectionstyle='arc3, rad=.2'))
 		
+		#rotation vector x, y, z, w
+		for i, k in enumerate(self.rotKeys):
+			if idx==self.channelDict[k]:
+				ax.plot(obj.rotVec[i], co[i], label=k)
+
 		
 		pass
 

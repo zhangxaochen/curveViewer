@@ -299,6 +299,17 @@ class Keys:
 	
 	
 # ====================从 main2.py 抽出来的：
+#RETURN np.array of shape(4,n), x,y,z, w
+def getRotationVector(xmlDic):
+	res=[
+			xmlDic[Keys.kRx],
+			xmlDic[Keys.kRy],
+			xmlDic[Keys.kRz],
+			xmlDic[Keys.kRw],
+			]
+	return np.asarray(res)
+	pass
+
 #RETURN np.array of shape(5,n), [3]is gxyz, [4] is gxyz_lpf
 def getGyroBF(xmlDic):
 	gx=xmlDic[Keys.kGx]
