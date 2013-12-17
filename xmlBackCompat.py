@@ -364,7 +364,8 @@ def loadFile(fname):
 		return data
 	else:
 	# if root.tag != newRootTag :
-		assert False, '-----------probably wrong xml folder'
+		# assert False, '-----------probably wrong xml folder'
+		print('-----------probably wrong xml folder')
 	
 
 def getInterpData(data, rate):
