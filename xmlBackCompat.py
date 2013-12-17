@@ -86,6 +86,8 @@ def main():
 
 		begTiming=time.time()
 		data=loadFile(fname)
+		if data==None:
+			continue
 		# print('data,', data)
 		print('[[[loadFile() takes: %f'%(time.time()-begTiming))
 		
@@ -348,7 +350,7 @@ def loadFile(fname):
 	PARAMS
 		fname: xml file name
 	RETURN 
-		data:  shape is {Keys.kA:np.ndarray([[t, x,y,z], ..., [t, x,y,z]], Keys.kG:...,  Keys.kM:...,  Keys.kR:...}
+		data:  shape is {Keys.kA:np.ndarray([[t, x,y,z], ..., [t, x,y,z]], Keys.kG:...,  Keys.kM:...,  Keys.kR:...}, if not data xml, return None
 	'''
 	psr=etree.XMLParser(remove_blank_text=True)
 	tree=etree.parse(fname, parser=psr, )
@@ -366,6 +368,7 @@ def loadFile(fname):
 	# if root.tag != newRootTag :
 		# assert False, '-----------probably wrong xml folder'
 		print('-----------probably wrong xml folder')
+		return None
 	
 
 def getInterpData(data, rate):
