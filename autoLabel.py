@@ -85,7 +85,8 @@ def labelData(data, tsList, label, winsz, th, debug):
 	return lines
 	pass
 
-	
+#输入数据文件 fname， 输出 outfname 标记结果文件， 如果 debug 则绘图
+#RETURN None
 def outputLabel(fname, outfname, debug):
 	#获得旧xml格式tree， 截取自 xmlBackCompat.py：
 	psr=etree.XMLParser(remove_blank_text=True)
