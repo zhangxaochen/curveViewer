@@ -29,6 +29,8 @@ labelTurn=1
 debug=True
 INVALID=-10000
 
+#对传入的 data， 用 label 在 tsList 上做标记，
+#RETURN list of [label, beginTime, endTime]
 def labelData(data, tsList, label, winsz, th, debug):
 	start=False
 	left=right=INVALID
@@ -41,7 +43,7 @@ def labelData(data, tsList, label, winsz, th, debug):
 		if i+winsz>len(data):
 			break
 		win=data[i: i+winsz]
-		delta=(win[-1]-win[0])/winsz
+		delta=abs(win[-1]-win[0])/winsz
 		if debug:
 			scatter(i, delta*100, s=20, c='m')
 		if delta>th and not start:
@@ -63,6 +65,9 @@ def labelData(data, tsList, label, winsz, th, debug):
 		elif delta<th and start:
 			start=False
 			right=i+winsz
+			# 防止溢出：
+			if right>len(data)-1:
+				right=len(data)-1
 			# axvline(right, c='y')
 	#加上最后一段：
 	# if lines==[] and right>left:
@@ -71,22 +76,17 @@ def labelData(data, tsList, label, winsz, th, debug):
 			axvline(right, c='y', lw=lw)
 		# lines.append('%d %d %d\n'%(label, left, right) )
 		lines.append([label, left, right])
+	#如果 lines 空的，可能因为没有 right， 或者连 left 也没有，加上：
+	if lines==[] and left>=0:
+		# left=0 if left<0 else left
+		right=len(data)-1 if right<0 else right
+		lines.append([label, left, right])
+	
 	return lines
 	pass
 
-def main():
-	# print(sys.argv)
-	# assert len(sys.argv)>2
-	fname=sys.argv[1] if len(sys.argv)>1 else None
-	outfname=sys.argv[2] if len(sys.argv)>2 else None
-	if fname==None:
-		fname=r'D:\Documents\Desktop\huaweiproj-driving\taxi1011_a1_4.xml'
-		fname=r'E:\桌面-2012-12-31\bysj 毕业设计 毕设\毕设-资料\step-counting,detection\我的计步算法实现\行为识别数据采集备份\华为深圳+杭州9月驾驶数据\origin\驾车数据\htc&matepro_胡平\Hupingzw_a2_5.xml'
-	if outfname==None:
-		outfname='shit.x'
 	
-	outf=open(outfname, 'w')
-	
+def outputLabel(fname, outfname, debug):
 	#获得旧xml格式tree， 截取自 xmlBackCompat.py：
 	psr=etree.XMLParser(remove_blank_text=True)
 	tree=etree.parse(fname, parser=psr, )
@@ -121,7 +121,9 @@ def main():
 	gyroWF=getGyroWF(dic)
 	angleWF=getAngleWF(gyroWF, tsList)
 	
-	suptitle(os.path.basename(fname), fontsize=33)
+	outf=open(outfname, 'w')
+	
+	suptitle(os.path.basename(fname), fontsize=20)
 	#滑动窗口设为FPS：
 	winsz=rate*2
 	#delta vxy threshold:
@@ -151,8 +153,24 @@ def main():
 		outf.write('%d %f %f\n'%(l[0], tsList[l[1]]/1000, tsList[l[2]]/1000) )
 	
 	outf.close()
-	show()
+	if debug:
+		show()
 	pass
+
+def main():
+	# print(sys.argv)
+	# assert len(sys.argv)>2
+	fname=sys.argv[1] if len(sys.argv)>1 else None
+	outfname=sys.argv[2] if len(sys.argv)>2 else None
+	if fname==None:
+		fname=r'D:\Documents\Desktop\huaweiproj-driving\taxi1011_a1_4.xml'
+		fname=r'E:\桌面-2012-12-31\bysj 毕业设计 毕设\毕设-资料\行为识别数据采集备份\华为深圳+杭州9月驾驶数据\origin\驾车数据\htc&matepro_胡平\Hupingzw_a2_5.xml'
+		fname=r'E:\桌面-2012-12-31\bysj 毕业设计 毕设\毕设-资料\行为识别数据采集备份\出租车驾驶数据\all\other\at2022_a1_0.xml'
+		fname=r'E:\桌面-2012-12-31\bysj 毕业设计 毕设\毕设-资料\行为识别数据采集备份\出租车驾驶数据\all\t6916\t6916_a4_4.xml'
+	if outfname==None:
+		outfname='shit.x'
+	outputLabel(fname, outfname, True)
+	return
 
 if __name__=='__main__':
 	main()
