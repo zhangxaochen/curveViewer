@@ -30,7 +30,7 @@ debug=True
 INVALID=-10000
 
 #对传入的 data， 用 label 在 tsList 上做标记，
-#RETURN list of [label, beginTime, endTime]
+#RETURN list of [label, left, right], left/right are index ints, not timestamp floats
 def labelData(data, tsList, label, winsz, th, debug):
 	start=False
 	left=right=INVALID
