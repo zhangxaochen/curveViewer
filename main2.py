@@ -22,7 +22,7 @@ import numpy as np
 from curveViewer_ui import *
 
 #colors
-co=('r', 'g', 'b', 'm', 'c', 'b')
+co=('r', 'g', 'b', 'm', 'c', 'b', 'gray')
 
 class MyWindow(QMainWindow):
 	#全局
@@ -39,7 +39,7 @@ class MyWindow(QMainWindow):
 	fileDict={}
 	
 	accBfKeys=['AxBF', 'AyBF', 'AzBF', 'AxyzBF', 'AxyzBF_LPF']
-	accWfKeys=['AxWF', 'AyWF', 'AzWF', 'AxyWF', 'AzWF_LPF', 'AxyzWF']
+	accWfKeys=['AxWF', 'AyWF', 'AzWF', 'AxyWF', 'AzWF_LPF', 'AxyzWF', 'AxyDir[arctan(ay/ax)]']
 	velKeys=['Vx', 'Vy', 'Vz', 'Vxy', ]
 	
 	gbfKeys=['GxBF', 'GyBF', 'GzBF', 'GxyzBF', 'GxyzBF_LPF']

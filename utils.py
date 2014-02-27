@@ -69,6 +69,9 @@ class LPF:
 class Utils:
 	@staticmethod
 	def calibrate(data):
+		'''返回一维 data， 主要用于处理 加速度， 
+		当加速度在 winsz 内稳定非零时， 认为此稳定值其实是静止状态下的偏移误差， 后续帧均减掉此偏移
+		'''
 		# 信号偏移：
 		drift=0
 		#滑动窗口长：
@@ -389,7 +392,7 @@ def getAccBF(xmlDic):
 	return res
 	pass
 
-#RETURN np.array of shape(5, n), arr[3] is axyWF, [4] is azWF_LPF, [5] is axyzWF
+#RETURN np.array of shape(7, n), arr[3] is axyWF, [4] is azWF_LPF, [5] is axyzWF, [6] is arctan(ay/ax)
 def getAccWF(xmlDic):
 	res=[]
 	dic=xmlDic
@@ -420,16 +423,21 @@ def getAccWF(xmlDic):
 		res[i]=Utils.calibrate(res[i])
 	
 	axyWF=(res[0]**2+res[1]**2)**0.5
-	res=np.vstack((res, axyWF))
+	# res=np.vstack((res, axyWF))
 	
 	# AzWF_LPF:
 	lpf=LPF()
 	azWF_LPF=lpf.lpfTest(res[2])
-	res=np.vstack((res, azWF_LPF))
+	# res=np.vstack((res, azWF_LPF))
 	
 	#AxyzWF:
 	axyzWF=(res[0]**2+res[1]**2+res[2]**2)**0.5
-	res=np.vstack((res, axyzWF))
+	# res=np.vstack((res, axyzWF))
+	
+	#arctan(y/x)
+	arctanYX=np.arctan(1.0*res[1]/res[0])
+	
+	res=np.vstack((res, axyWF, azWF_LPF, axyzWF, arctanYX))
 	
 	return res
 	pass
