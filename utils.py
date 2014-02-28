@@ -419,8 +419,8 @@ def getAccWF(xmlDic):
 	res[2]-=9.80665
 	
 	# 这里做一个加速度修正校正补偿：
-	for i in range(3):
-		res[i]=Utils.calibrate(res[i])
+	# for i in range(3):
+		# res[i]=Utils.calibrate(res[i])
 	
 	axyWF=(res[0]**2+res[1]**2)**0.5
 	# res=np.vstack((res, axyWF))
