@@ -51,8 +51,11 @@ class LPF:
 		return np.asanyarray(res)
 		pass
 		
-	#开始 numtaps 一段不要太低
+	
 	def lpfTest(self, data, numtaps=WINSZ, cutoff=40, nyq=800):
+		'''
+		先 lpfScipy 处理， 然后开始 numtaps 一段里，做均值处理， 使开端不要因 hamming 导致太低， 偏离原数据
+		'''
 		res=self.lpfScipy(data, numtaps, cutoff, nyq)
 		# res[:numtaps]=[data[:i]/(i+1) for i in range(numtaps)]
 		tmp=numtaps-1 if numtaps-1<len(res) else len(res)

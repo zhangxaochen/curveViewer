@@ -166,6 +166,25 @@ def getOldStyleElementTree(interpData):
 	
 	return etree.ElementTree(oldRoot)
 
+
+#
+def getNewStyleEtreeFromNewData(data):
+	'''
+	与 getNewStyleElementTree 参数不同， 接收参数与 loadFile 的返回值一致
+	
+	Params
+	---------------
+	data:  shape is {Keys.kA:np.ndarray([[t, x,y,z], ..., [t, x,y,z]]), Keys.kG:...,  Keys.kM:...,  Keys.kR:...}, if not data xml, return None
+	
+	Returns
+	---------------
+	tree: a NEW style etree.ElementTree instance
+	'''
+	
+	pass
+
+#
+
 def getNewStyleElementTree(interpData):
 	'''
 	PARAMS
@@ -317,6 +336,7 @@ def loadNewXmlTree(root):
 		cname=c.find(Keys.kName).text
 		frameList=c.find(Keys.kFrames).findall(Keys.kFrame)
 		#-------------对每一帧：
+		# print('===========', len(frameList))
 		valList=[]
 		for idx, f in enumerate(frameList):
 			ts=float(f.find(Keys.kTime).text)
@@ -325,8 +345,8 @@ def loadNewXmlTree(root):
 				pass
 				# continue
 			# if idx in [i for i in range(10)]:	#学傻了
-			if idx in range(10):
-				continue	#去掉第一帧
+			# if idx in range(10):
+				# continue	#去掉前十帧
 			v=f.find(Keys.kValue)
 			vx=float(v.find(Keys.kX).text)
 			vy=float(v.find(Keys.kY).text)
@@ -350,7 +370,7 @@ def loadFile(fname):
 	PARAMS
 		fname: xml file name
 	RETURN 
-		data:  shape is {Keys.kA:np.ndarray([[t, x,y,z], ..., [t, x,y,z]], Keys.kG:...,  Keys.kM:...,  Keys.kR:...}, if not data xml, return None
+		data:  shape is {Keys.kA:np.ndarray([[t, (w), x,y,z], ..., [t, (w), x,y,z]]), Keys.kG:...,  Keys.kM:...,  Keys.kR:...}, if not data xml, return None
 	'''
 	psr=etree.XMLParser(remove_blank_text=True)
 	tree=etree.parse(fname, parser=psr, )
