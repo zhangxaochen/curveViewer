@@ -1,4 +1,7 @@
 #coding=utf-8
+'''
+对手机采集的运动传感 xml 数据做低通滤波，依赖 batchLpfConfig.py 配置文件
+'''
 import os, sys
 from glob import glob
 from lxml import etree
