@@ -377,6 +377,16 @@ def getAngleWF(gyroWF, tsList):
 	return res
 	pass
 
+#
+def getMagBF(xmlDic):
+	res=[]
+	res.append(xmlDic[Keys.kMx])
+	res.append(xmlDic[Keys.kMy])
+	res.append(xmlDic[Keys.kMz])
+	
+	return res
+	pass
+	
 #RETURN np.array of shape(5,n), [3] is accXYZ, [4] is accXYZ_LPF
 def getAccBF(xmlDic):
 	res=[]

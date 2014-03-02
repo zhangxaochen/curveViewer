@@ -47,11 +47,13 @@ class MyWindow(QMainWindow):
 	#旋转角：
 	angWfKeys=['AngXWF', 'AngYWF', 'AngZWF', 'AngZWF_lpf']
 	
+	magBfKeys=['Mx', 'My', 'Mz']
+	
 	disKeys=['Displacement']
 	
 	rotKeys=[Keys.kRx, Keys.kRy, Keys.kRz, Keys.kRw, ]
 	
-	channelsToShow=accBfKeys+accWfKeys+velKeys+gbfKeys+gwfKeys+angWfKeys+disKeys+rotKeys
+	channelsToShow=accBfKeys+accWfKeys+velKeys+gbfKeys+gwfKeys+angWfKeys+magBfKeys+disKeys+rotKeys
 
 	#channelsToShow 改成 dict
 	channelDict={}
@@ -159,6 +161,11 @@ class MyWindow(QMainWindow):
 			obj.gyroWF=getGyroWF(dic)
 		if not hasattr(obj, 'angleWF'):
 			obj.angleWF=getAngleWF(obj.gyroWF, obj.tsList)
+		
+		#magBF x,y,z
+		if not hasattr(obj, 'magBF'):
+			obj.magBF=getMagBF(dic)
+		
 		#rotation vector x, y, z, w
 		if not hasattr(obj, 'rotVec'):
 			obj.rotVec=getRotationVector(dic)
@@ -193,6 +200,10 @@ class MyWindow(QMainWindow):
 		for i, k in enumerate(self.angWfKeys):
 			if idx==self.channelDict[k]:
 				ax.plot(obj.angleWF[i], co[i], label=k, lw=2)
+		
+		for i, k in enumerate(self.magBfKeys):
+			if idx==self.channelDict[k]:
+				ax.plot(obj.magBF[i], co[i], label=k, )
 		
 		#displacement:
 		if idx==self.channelDict['Displacement']:
