@@ -423,6 +423,9 @@ def getInterpData(data, rate):
 	# global rate
 	startTime=max(float(v[0][0]) for _,v in data.items())
 	stopTime=min(float(v[-1][0]) for _,v in data.items())
+	if abs(startTime-stopTime)>3600:
+		raise ValueError
+	
 	print('startTime:', startTime, [float(v[0][0]) for _,v in data.items()], )
 	print('stopTime:', stopTime, [float(v[-1][0]) for _,v in data.items()], )
 	
