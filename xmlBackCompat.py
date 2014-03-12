@@ -80,12 +80,24 @@ def main():
 	xmlFileList=glob.glob("*.xml")
 	print(xmlFileList)
 	
+	#不完整的 xml 文件：
+	brokenFiles=[]
+	
+	#时间戳错误，以致于无法插值：
+	invalidTsFiles=[]
+	
 	#----------------对每个文件：
 	for idx, fname in enumerate(xmlFileList):
 		print('================fname:', fname)
 
 		begTiming=time.time()
-		data=loadFile(fname)
+		try:
+			data=loadFile(fname)
+		except etree.XMLSyntaxError:
+			print('BROKEN XML FILE!!!')
+			brokenFiles.append(fname)
+			continue
+
 		if data==None:
 			continue
 		# print('data,', data)
@@ -93,7 +105,12 @@ def main():
 		
 		#-----------------interpData shape is {t:[], a:[ array([...]),[],[] ], g:[ [],[],[] ], m.. r.. }
 		begTiming=time.time()
-		interpData=getInterpData(data, rate)
+		try:
+			interpData=getInterpData(data, rate)
+		except ValueError:
+			print('INVALID TIMESTAMP of the file!!!')
+			invalidTsFiles.append(fname)
+			continue
 		print('[[[getInterpData() takes: %f'%(time.time()-begTiming))
 
 		if style == strOld:
@@ -107,8 +124,6 @@ def main():
 			print('[[[getNewStyleElementTree() takes: %f'%(time.time()-begTiming))
 		else:
 			print('Holy shit! What happened?? ')
-			
-
 
 		newFolder=folder+os.sep+style+'-'+interpKind
 		if not os.path.exists(newFolder):
@@ -124,7 +139,14 @@ def main():
 		ff.close()
 		
 		print('[[[tree.write() takes: %f'%(time.time()-begTiming))
-
+	#=============输出损坏文件， 以及时间戳有问题的文件：
+	print('================BROKEN files : ================')
+	for fname in brokenFiles:
+		print(fname)
+	print('================files with INVALID TIMESTAMP : ================')
+	for fname in invalidTsFiles:
+		print(fname)
+	
 
 def getOldStyleElementTree(interpData):
 	'''
