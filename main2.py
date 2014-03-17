@@ -47,7 +47,7 @@ class MyWindow(QMainWindow):
 	#旋转角：
 	angWfKeys=['AngXWF', 'AngYWF', 'AngZWF', 'AngZWF_lpf']
 	
-	magBfKeys=['Mx', 'My', 'Mz']
+	magBfKeys=['MxBF', 'MyBF', 'MzBF']
 	
 	disKeys=['Displacement']
 	
@@ -361,9 +361,14 @@ class MyWindow(QMainWindow):
 				ff.write(xmlStr)
 			# ff.close()
 			
-		
-		
-		
+			#config filename, or [label, startTime, endTime] file:
+			cfgFname=os.path.splitext(fname)[0]+'.txt'
+			
+			with open(cfgFname, 'w') as ft:
+				sts=float(nodeNode[0].attrib[Keys.kTs])/1e3
+				ets=float(nodeNode[-1].attrib[Keys.kTs])/1e3
+				ft.write('%s %s'%(sts, ets))
+			
 		
 		
 		pass
